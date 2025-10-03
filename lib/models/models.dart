@@ -5,10 +5,9 @@ class ServiceModel {
   final String name;
   final String description;
   final IconData icon;
-  final Color color;
   bool isActive;
 
-  ServiceModel({required this.id, required this.name, required this.description, required this.icon, required this.color, this.isActive = true});
+  ServiceModel({required this.id, required this.name, required this.description, required this.icon, this.isActive = true});
 }
 
 class UserModel {

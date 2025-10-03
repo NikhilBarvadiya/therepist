@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:therepist/models/models.dart';
+import 'package:therepist/utils/decoration.dart';
 import 'package:therepist/views/dashboard/services/service_details.dart';
 import 'package:therepist/views/dashboard/services/services_ctrl.dart';
 
@@ -125,8 +126,8 @@ class Services extends StatelessWidget {
                   children: [
                     Container(
                       padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(color: service.color.withOpacity(0.15), borderRadius: BorderRadius.circular(12)),
-                      child: Icon(service.icon, color: service.color, size: 24),
+                      decoration: BoxDecoration(color: decoration.colorScheme.primary.withOpacity(0.15), borderRadius: BorderRadius.circular(12)),
+                      child: Icon(service.icon, color: decoration.colorScheme.primary, size: 24),
                     ),
                     Expanded(
                       child: Text(
@@ -154,7 +155,12 @@ class Services extends StatelessWidget {
                       ),
                       Transform.scale(
                         scale: 0.8,
-                        child: Switch(value: service.isActive, activeColor: Color(0xFF6C63FF), inactiveTrackColor: Colors.grey[400], onChanged: (value) => ctrl.toggleServiceStatus(service.id, value)),
+                        child: Switch(
+                          value: service.isActive,
+                          activeColor: decoration.colorScheme.primary,
+                          inactiveTrackColor: Colors.grey[400],
+                          onChanged: (value) => ctrl.toggleServiceStatus(service.id, value),
+                        ),
                       ),
                     ],
                   ),

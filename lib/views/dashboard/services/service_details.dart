@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:therepist/models/models.dart';
+import 'package:therepist/utils/decoration.dart';
 import 'package:therepist/views/dashboard/services/services_ctrl.dart';
 
 class ServiceDetails extends StatefulWidget {
@@ -22,7 +23,6 @@ class _ServiceDetailsState extends State<ServiceDetails> {
       backgroundColor: Colors.grey[50],
       body: CustomScrollView(
         slivers: [
-          // App Bar with Hero Animation
           SliverAppBar(
             elevation: 0,
             toolbarHeight: 65,
@@ -41,27 +41,18 @@ class _ServiceDetailsState extends State<ServiceDetails> {
               onPressed: () => Get.back(),
             ),
           ),
-
-          // Main Content
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Service Header Card
                   _buildServiceHeaderCard(widget.service),
                   const SizedBox(height: 24),
-
-                  // Service Details Section
                   _buildDetailsSection(widget.service),
                   const SizedBox(height: 24),
-
-                  // Admin Controls Section
                   _buildAdminControlsSection(ctrl),
                   const SizedBox(height: 24),
-
-                  // Additional Actions
                   _buildActionButtons(ctrl),
                 ],
               ),
@@ -82,15 +73,12 @@ class _ServiceDetailsState extends State<ServiceDetails> {
       ),
       child: Row(
         children: [
-          // Service Icon
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: service.color.withOpacity(0.15), borderRadius: BorderRadius.circular(16)),
-            child: Icon(service.icon, color: service.color, size: 32),
+            decoration: BoxDecoration(color: decoration.colorScheme.primary.withOpacity(0.15), borderRadius: BorderRadius.circular(16)),
+            child: Icon(service.icon, color: decoration.colorScheme.primary, size: 32),
           ),
           const SizedBox(width: 16),
-
-          // Service Info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -159,7 +147,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
           const SizedBox(height: 12),
           _buildDetailItem(icon: Icons.category_outlined, label: 'Category', value: 'Physiotherapy'),
           const SizedBox(height: 12),
-          _buildDetailItem(icon: Icons.palette_outlined, label: 'Service Color', value: 'Custom Theme', color: service.color),
+          _buildDetailItem(icon: Icons.palette_outlined, label: 'Service Color', value: 'Custom Theme', color: decoration.colorScheme.primary),
         ],
       ),
     );
@@ -246,8 +234,6 @@ class _ServiceDetailsState extends State<ServiceDetails> {
       ),
       child: Row(
         children: [
-          Icon(currentService.isActive ? Icons.check_circle : Icons.pause_circle, color: currentService.isActive ? Colors.green : Colors.orange, size: 24),
-          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -266,17 +252,15 @@ class _ServiceDetailsState extends State<ServiceDetails> {
           ),
           const SizedBox(width: 12),
           Transform.scale(
-            scale: 1.2,
+            scale: 0.8,
             child: Switch(
               value: currentService.isActive,
-              activeColor: const Color(0xFF6C63FF),
+              activeColor: decoration.colorScheme.primary,
               inactiveTrackColor: Colors.grey[400],
               onChanged: (value) {
                 currentService.isActive = value;
                 ctrl.toggleServiceStatus(currentService.id, value);
                 setState(() {});
-
-                // Show success message
                 Get.snackbar(
                   value ? 'Service Enabled' : 'Service Disabled',
                   value ? '${currentService.name} is now active and visible to patients' : '${currentService.name} is now inactive and hidden from patients',
@@ -287,8 +271,6 @@ class _ServiceDetailsState extends State<ServiceDetails> {
                   borderRadius: 12,
                   duration: const Duration(seconds: 3),
                 );
-
-                // Force UI refresh by updating the controller
                 ctrl.update();
               },
             ),
