@@ -18,7 +18,6 @@ class Services extends StatelessWidget {
           backgroundColor: Colors.grey[50],
           body: CustomScrollView(
             slivers: [
-              // App Bar
               SliverAppBar(
                 elevation: 0,
                 toolbarHeight: 65,
@@ -51,8 +50,6 @@ class Services extends StatelessWidget {
                   ),
                 ],
               ),
-
-              // Search Section
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.only(left: 20, right: 20, top: 16),
@@ -85,8 +82,6 @@ class Services extends StatelessWidget {
                   ),
                 ),
               ),
-
-              // Services Grid
               Obx(
                 () => ctrl.filteredServices.isEmpty
                     ? SliverFillRemaining(child: _buildEmptyState())
@@ -125,51 +120,36 @@ class Services extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header with Icon and Status
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  spacing: 12.0,
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(color: service.color.withOpacity(0.15), borderRadius: BorderRadius.circular(12)),
                       child: Icon(service.icon, color: service.color, size: 24),
+                    ),
+                    Expanded(
+                      child: Text(
+                        service.name,
+                        style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                     _buildStatusBadge(service.isActive),
                   ],
                 ),
                 const SizedBox(height: 12),
-
-                // Service Name
-                Text(
-                  service.name,
-                  style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 8),
-
-                // Description
-                Text(
-                  service.description,
-                  style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600], height: 1.4),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 12),
-
-                // Toggle Switch
                 Container(
-                  height: 40,
                   decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(12)),
                   child: Row(
                     children: [
                       Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 12),
-                          child: Text(
-                            service.isActive ? 'Active' : 'Inactive',
-                            style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w500, color: service.isActive ? Colors.green : Colors.orange),
-                          ),
+                        child: Text(
+                          service.description,
+                          style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600], height: 1.4),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       Transform.scale(

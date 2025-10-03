@@ -31,7 +31,6 @@ class DashboardCtrl extends GetxController {
 
   var filteredPendingRequests = <RequestModel>[].obs;
 
-  // Filter variables
   var userName = ''.obs;
   var selectedStatus = ''.obs;
   var selectedService = ''.obs;

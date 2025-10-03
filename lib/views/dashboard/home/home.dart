@@ -18,7 +18,6 @@ class Home extends StatelessWidget {
       backgroundColor: Colors.grey[50],
       body: CustomScrollView(
         slivers: [
-          // App Bar Section
           SliverAppBar(
             elevation: 0,
             toolbarHeight: 65,
@@ -58,8 +57,6 @@ class Home extends StatelessWidget {
               ),
             ],
           ),
-
-          // Main Content
           SliverToBoxAdapter(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -153,7 +150,6 @@ class Home extends StatelessWidget {
                         ],
                       ),
                     ),
-                    // Page indicator
                     Positioned(
                       bottom: 8,
                       left: 0,

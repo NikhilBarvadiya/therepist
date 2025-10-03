@@ -17,7 +17,6 @@ class Appointments extends StatelessWidget {
       backgroundColor: Colors.grey[50],
       body: CustomScrollView(
         slivers: [
-          // App Bar
           SliverAppBar(
             elevation: 0,
             toolbarHeight: 65,
@@ -44,8 +43,6 @@ class Appointments extends StatelessWidget {
               onPressed: () => Get.back(),
             ),
           ),
-
-          // Search Section
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.only(left: 20, right: 20, top: 16, bottom: 4),
@@ -80,8 +77,6 @@ class Appointments extends StatelessWidget {
               ),
             ),
           ),
-
-          // Status Filter Chips
           SliverToBoxAdapter(
             child: Obx(
               () => SizedBox(
@@ -100,8 +95,6 @@ class Appointments extends StatelessWidget {
               ),
             ),
           ),
-
-          // Appointments List
           Obx(
             () => ctrl.filteredAppointments.isEmpty
                 ? SliverFillRemaining(child: _buildEmptyState())
@@ -155,10 +148,8 @@ class Appointments extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header Row
             Row(
               children: [
-                // Patient Avatar and Info
                 Expanded(
                   child: Row(
                     children: [
@@ -179,8 +170,6 @@ class Appointments extends StatelessWidget {
                     ],
                   ),
                 ),
-
-                // Status Badge
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(color: statusColor.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
@@ -198,16 +187,12 @@ class Appointments extends StatelessWidget {
                 ),
               ],
             ),
-
             const SizedBox(height: 16),
-
-            // Appointment Details Grid
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(12)),
               child: Column(
                 children: [
-                  // Date and Time
                   Row(
                     children: [
                       Expanded(child: _buildDetailItem(Icons.calendar_today_outlined, 'Date', appointment.date)),
@@ -215,8 +200,6 @@ class Appointments extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 12),
-
-                  // Service and Duration
                   Row(children: [Expanded(child: _buildDetailItem(Icons.medical_services_outlined, 'Service', appointment.service))]),
                 ],
               ),
