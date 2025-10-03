@@ -1,0 +1,33 @@
+name: therepist
+description: "A new Flutter project."
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  get: ^4.7.2
+  intl: ^0.20.2
+  connectivity_plus: ^7.0.0
+  get_storage: ^2.1.1
+  toastification: ^3.0.3
+  google_fonts: ^6.3.2
+  font_awesome_flutter: ^10.10.0
+  cached_network_image: ^3.4.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^5.0.0
+
+flutter:
+
+  uses-material-design: true
