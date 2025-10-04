@@ -27,6 +27,7 @@ class _ProfileState extends State<Profile> {
                 backgroundColor: Colors.white,
                 pinned: true,
                 floating: true,
+                automaticallyImplyLeading: false,
                 title: Text(
                   'Profile',
                   style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),

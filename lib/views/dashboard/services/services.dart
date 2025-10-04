@@ -25,6 +25,7 @@ class Services extends StatelessWidget {
                 backgroundColor: Colors.white,
                 pinned: true,
                 floating: true,
+                automaticallyImplyLeading: false,
                 title: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   crossAxisAlignment: CrossAxisAlignment.start,
