@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:therepist/utils/decoration.dart';
 import 'package:therepist/utils/routes/route_name.dart';
 import 'package:therepist/views/dashboard/profile/profile_ctrl.dart';
+import 'package:therepist/views/dashboard/profile/ui/availability_settings.dart';
 
 class Settings extends StatelessWidget {
   const Settings({super.key});
@@ -27,11 +28,12 @@ class Settings extends StatelessWidget {
                 style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
               ),
               leading: IconButton(
-                icon: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(12)),
-                  child: const Icon(Icons.arrow_back, color: Colors.black87, size: 20),
+                style: ButtonStyle(
+                  shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                  padding: WidgetStatePropertyAll(const EdgeInsets.all(8)),
+                  backgroundColor: WidgetStatePropertyAll(Colors.grey[100]),
                 ),
+                icon: const Icon(Icons.arrow_back, color: Colors.black87, size: 20),
                 onPressed: () => Get.back(),
               ),
             ),
@@ -41,24 +43,22 @@ class Settings extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildSectionHeader('App Settings'),
+                    _buildSectionHeader('Clinic Settings'),
                     const SizedBox(height: 16),
                     _buildSettingsCard(
                       children: [
                         _buildSettingsTile(
-                          icon: Icons.notifications_outlined,
-                          title: 'Push Notifications',
-                          subtitle: 'Manage your notification preferences',
-                          trailing: Switch(value: true, activeColor: decoration.colorScheme.primary, onChanged: (value) {}),
+                          icon: Icons.location_on_outlined,
+                          title: 'Notification Range',
+                          subtitle: 'Set distance for receiving orders',
+                          onTap: () => _showNotificationRangeDialog(ctrl),
                         ),
                         _buildDivider(),
-                        _buildSettingsTile(icon: Icons.language_outlined, title: 'Language', subtitle: 'English (US)', onTap: () {}),
-                        _buildDivider(),
                         _buildSettingsTile(
-                          icon: Icons.dark_mode_outlined,
-                          title: 'Dark Mode',
-                          subtitle: 'Use dark theme',
-                          trailing: Switch(value: false, activeColor: decoration.colorScheme.primary, onChanged: (value) {}),
+                          icon: Icons.calendar_today_outlined,
+                          title: 'Clinic Availability',
+                          subtitle: 'Set your working hours and slots',
+                          onTap: () => _showAvailabilitySettings(ctrl),
                         ),
                       ],
                     ),
@@ -247,6 +247,112 @@ We're here to help you succeed!
     );
   }
 
+  void _showNotificationRangeDialog(ProfileCtrl ctrl) {
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(color: decoration.colorScheme.primary.withOpacity(0.1), shape: BoxShape.circle),
+                child: Icon(Icons.location_on_outlined, color: decoration.colorScheme.primary, size: 40),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Notification Range',
+                style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Set maximum distance to receive order notifications',
+                style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              Obx(
+                () => Column(
+                  children: [
+                    Text(
+                      '${ctrl.notificationRange.value} km',
+                      style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold, color: decoration.colorScheme.primary),
+                    ),
+                    const SizedBox(height: 16),
+                    Slider(
+                      value: ctrl.notificationRange.value.toDouble(),
+                      min: 1,
+                      max: 50,
+                      divisions: 49,
+                      activeColor: decoration.colorScheme.primary,
+                      inactiveColor: Colors.grey[300],
+                      label: '${ctrl.notificationRange.value} km',
+                      onChanged: (value) => ctrl.setNotificationRange(value.toInt()),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('1 km', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600])),
+                        Text('50 km', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600])),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Get.back(),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: Text('Cancel', style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        ctrl.saveNotificationRange();
+                        Get.back();
+                        Get.snackbar(
+                          'Success',
+                          'Notification range set to ${ctrl.notificationRange.value} km',
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: Colors.green,
+                          colorText: Colors.white,
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: decoration.colorScheme.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: Text(
+                        'Save',
+                        style: GoogleFonts.poppins(fontWeight: FontWeight.w500, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showAvailabilitySettings(ProfileCtrl ctrl) {
+    Get.to(() => AvailabilitySettings());
+  }
+
   void _showPolicyPage(String title, String content) {
     Get.to(
       () => Scaffold(
@@ -259,11 +365,12 @@ We're here to help you succeed!
             style: GoogleFonts.poppins(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 20),
           ),
           leading: IconButton(
-            icon: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(12)),
-              child: const Icon(Icons.arrow_back, color: Colors.black87, size: 20),
+            style: ButtonStyle(
+              shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+              padding: WidgetStatePropertyAll(const EdgeInsets.all(8)),
+              backgroundColor: WidgetStatePropertyAll(Colors.grey[100]),
             ),
+            icon: const Icon(Icons.arrow_back, color: Colors.black87, size: 20),
             onPressed: () => Get.back(),
           ),
         ),

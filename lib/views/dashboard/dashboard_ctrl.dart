@@ -1,7 +1,7 @@
-import 'dart:convert';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:therepist/models/models.dart';
+import 'package:therepist/utils/config/session.dart';
+import 'package:therepist/utils/storage.dart';
 
 class DashboardCtrl extends GetxController {
   var currentIndex = 0.obs;
@@ -47,11 +47,9 @@ class DashboardCtrl extends GetxController {
 
   void loadUserData() async {
     try {
-      final storage = GetStorage();
-      dynamic userData = await storage.read('userData');
+      final userData = await read(AppSession.userData);
       if (userData != null) {
-        userData = jsonDecode(userData);
-        userName.value = userData['name'] ?? "Dr. John Smith";
+        userName.value = userData['name'] ?? userData['clinic'] ?? "Dr. John Smith";
       }
     } catch (e) {
       Get.snackbar('Error', 'Failed to load user data: $e', snackPosition: SnackPosition.BOTTOM);

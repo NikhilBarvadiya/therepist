@@ -33,11 +33,12 @@ class _ServiceDetailsState extends State<ServiceDetails> {
               style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
             ),
             leading: IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(12)),
-                child: const Icon(Icons.arrow_back, color: Colors.black87),
+              style: ButtonStyle(
+                shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                padding: WidgetStatePropertyAll(const EdgeInsets.all(8)),
+                backgroundColor: WidgetStatePropertyAll(Colors.grey[100]),
               ),
+              icon: const Icon(Icons.arrow_back, color: Colors.black87),
               onPressed: () => Get.back(),
             ),
           ),

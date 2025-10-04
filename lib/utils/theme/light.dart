@@ -127,7 +127,6 @@ class AppTheme {
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1),
       ),
-
       labelStyle: GoogleFonts.inter(fontSize: 14, color: textSecondary, fontWeight: FontWeight.w500),
       hintStyle: GoogleFonts.inter(fontSize: 14, color: textLight),
       errorStyle: GoogleFonts.inter(fontSize: 12, color: Color(0xFFEF4444)),

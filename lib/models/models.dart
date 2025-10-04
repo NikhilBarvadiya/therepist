@@ -34,6 +34,28 @@ class UserModel {
   });
 }
 
+class EquipmentModel {
+  final int id;
+  final String name;
+  final String description;
+  final IconData icon;
+  bool isActive;
+  final double rate;
+
+  EquipmentModel({required this.id, required this.name, required this.description, required this.icon, this.isActive = false, required this.rate});
+
+  EquipmentModel copyWith({int? id, String? name, String? description, IconData? icon, bool? isActive, double? rate}) {
+    return EquipmentModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      icon: icon ?? this.icon,
+      isActive: isActive ?? this.isActive,
+      rate: rate ?? this.rate,
+    );
+  }
+}
+
 class AppointmentModel {
   final int id;
   final String patientName;

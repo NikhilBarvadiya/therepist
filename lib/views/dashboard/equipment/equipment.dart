@@ -3,17 +3,16 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:therepist/models/models.dart';
 import 'package:therepist/utils/decoration.dart';
-import 'package:therepist/views/dashboard/services/service_details.dart';
-import 'package:therepist/views/dashboard/services/services_ctrl.dart';
+import 'package:therepist/views/dashboard/equipment/equipment_ctrl.dart';
 
-class Services extends StatelessWidget {
-  const Services({super.key});
+class Equipment extends StatelessWidget {
+  const Equipment({super.key});
 
   @override
   Widget build(BuildContext context) {
     final TextEditingController searchController = TextEditingController();
-    return GetBuilder<ServicesCtrl>(
-      init: ServicesCtrl(),
+    return GetBuilder<EquipmentCtrl>(
+      init: EquipmentCtrl(),
       builder: (ctrl) {
         return Scaffold(
           backgroundColor: Colors.grey[50],
@@ -31,10 +30,10 @@ class Services extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Services',
+                      'Equipment',
                       style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
                     ),
-                    Obx(() => Text('${ctrl.filteredServices.length} services available', style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]))),
+                    Obx(() => Text('${ctrl.filteredEquipment.length} equipment • ${ctrl.getSelectedEquipment().length} selected', style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]))),
                   ],
                 ),
                 actions: [
@@ -47,8 +46,8 @@ class Services extends StatelessWidget {
                         backgroundColor: WidgetStatePropertyAll(Colors.grey[100]),
                       ),
                       icon: const Icon(Icons.refresh, color: Colors.black87, size: 22),
-                      onPressed: () => ctrl.filterServices(),
-                      tooltip: 'Refresh Services',
+                      onPressed: () => ctrl.filterEquipment(),
+                      tooltip: 'Refresh Equipment',
                     ),
                   ),
                 ],
@@ -65,7 +64,7 @@ class Services extends StatelessWidget {
                     child: TextField(
                       controller: searchController,
                       decoration: InputDecoration(
-                        hintText: 'Search services...',
+                        hintText: 'Search equipment...',
                         hintStyle: GoogleFonts.poppins(color: Colors.grey[600]),
                         prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
                         border: InputBorder.none,
@@ -75,26 +74,26 @@ class Services extends StatelessWidget {
                                 icon: Icon(Icons.clear, color: Colors.grey[600]),
                                 onPressed: () {
                                   searchController.clear();
-                                  ctrl.searchServices('');
+                                  ctrl.searchEquipment('');
                                 },
                               )
                             : null,
                       ),
-                      onChanged: (value) => ctrl.searchServices(value),
+                      onChanged: (value) => ctrl.searchEquipment(value),
                     ),
                   ),
                 ),
               ),
               Obx(
-                () => ctrl.filteredServices.isEmpty
-                    ? SliverFillRemaining(child: _buildEmptyState())
+                () => ctrl.filteredEquipment.isEmpty
+                    ? SliverFillRemaining(child: _buildEmptyState(ctrl))
                     : SliverPadding(
                         padding: const EdgeInsets.all(20),
                         sliver: SliverList(
                           delegate: SliverChildBuilderDelegate((context, index) {
-                            final service = ctrl.filteredServices[index];
-                            return _buildServiceCard(context, service, ctrl);
-                          }, childCount: ctrl.filteredServices.length),
+                            final equipment = ctrl.filteredEquipment[index];
+                            return _buildEquipmentCard(context, equipment, ctrl);
+                          }, childCount: ctrl.filteredEquipment.length),
                         ),
                       ),
               ),
@@ -105,72 +104,97 @@ class Services extends StatelessWidget {
     );
   }
 
-  Widget _buildServiceCard(BuildContext context, ServiceModel service, ServicesCtrl ctrl) {
+  Widget _buildEquipmentCard(BuildContext context, EquipmentModel equipment, EquipmentCtrl ctrl) {
     return Container(
-      margin: EdgeInsets.only(bottom: 15),
+      margin: const EdgeInsets.only(bottom: 15),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [BoxShadow(color: Colors.white.withOpacity(0.08), blurRadius: 12, offset: const Offset(0, 4))],
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => Get.to(() => ServiceDetails(service: service)),
-          borderRadius: BorderRadius.circular(20),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Row(
-                  spacing: 12.0,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(color: decoration.colorScheme.primary.withOpacity(0.15), borderRadius: BorderRadius.circular(12)),
-                      child: Icon(service.icon, color: decoration.colorScheme.primary, size: 24),
-                    ),
-                    Expanded(
-                      child: Text(
-                        service.name,
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(color: decoration.colorScheme.primary.withOpacity(0.15), borderRadius: BorderRadius.circular(12)),
+                  child: Icon(equipment.icon, color: decoration.colorScheme.primary, size: 24),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        equipment.name,
                         style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    _buildStatusBadge(service.isActive),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(12)),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          service.description,
-                          style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600], height: 1.4),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ).paddingOnly(left: 12),
-                      ),
-                      Transform.scale(
-                        scale: 0.8,
-                        child: Switch(
-                          value: service.isActive,
-                          activeColor: decoration.colorScheme.primary,
-                          inactiveTrackColor: Colors.grey[400],
-                          onChanged: (value) => ctrl.toggleServiceStatus(service.id, value),
-                        ),
-                      ),
+                      const SizedBox(height: 4),
+                      _buildRateDisplay(equipment.rate, equipment.id, ctrl),
                     ],
                   ),
                 ),
+                _buildStatusBadge(equipment.isActive),
               ],
             ),
-          ),
+            const SizedBox(height: 12),
+            Container(
+              decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(12)),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            equipment.description,
+                            style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600], height: 1.4),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Transform.scale(
+                    scale: 0.8,
+                    child: Switch(
+                      value: equipment.isActive,
+                      activeColor: decoration.colorScheme.primary,
+                      inactiveTrackColor: Colors.grey[400],
+                      onChanged: (value) => ctrl.toggleEquipmentStatus(equipment.id, value),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildRateDisplay(double rate, int equipmentId, EquipmentCtrl ctrl) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(color: Colors.blue.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.currency_rupee, size: 12, color: Colors.blue[700]),
+          Text(
+            '${rate.toStringAsFixed(0)}/Budget',
+            style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.blue[700]),
+          ),
+        ],
       ),
     );
   }
@@ -197,33 +221,30 @@ class Services extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(EquipmentCtrl ctrl) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Icon(Icons.medical_services_outlined, size: 80, color: Colors.grey[300]),
         const SizedBox(height: 20),
         Text(
-          'No Services Found',
+          'No Equipment Found',
           style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.grey[600]),
         ),
         const SizedBox(height: 8),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 40),
           child: Text(
-            'Try adjusting your search criteria or check back later for new services',
+            'Try adjusting your search criteria or check back later for new equipment',
             style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[500]),
             textAlign: TextAlign.center,
           ),
         ),
         const SizedBox(height: 20),
         ElevatedButton(
-          onPressed: () {
-            final ctrl = Get.find<ServicesCtrl>();
-            ctrl.searchServices('');
-          },
+          onPressed: () => ctrl.searchEquipment(''),
           style: ElevatedButton.styleFrom(
-            backgroundColor: Color(0xFF6C63FF),
+            backgroundColor: decoration.colorScheme.primary,
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),

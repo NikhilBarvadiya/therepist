@@ -33,44 +33,45 @@ class _ProfileState extends State<Profile> {
                   style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
                 ),
                 actions: [
-                  if (!ctrl.isEditMode)
+                  if (ctrl.isEditMode)
                     IconButton(
                       icon: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(color: decoration.colorScheme.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-                        child: Icon(Icons.settings_outlined, color: decoration.colorScheme.primary, size: 20),
+                        child: Icon(Icons.save, color: decoration.colorScheme.primary, size: 20),
                       ),
+                      onPressed: ctrl.saveProfile,
+                    ),
+                  if (!ctrl.isEditMode)
+                    IconButton(
+                      style: ButtonStyle(
+                        shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                        padding: WidgetStatePropertyAll(const EdgeInsets.all(8)),
+                        backgroundColor: WidgetStatePropertyAll(Colors.grey[100]),
+                      ),
+                      icon: Icon(Icons.settings_outlined, color: decoration.colorScheme.primary, size: 20),
                       onPressed: () => Get.to(() => const Settings()),
                       tooltip: 'Settings',
                     ),
-                  if (!ctrl.isEditMode)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
-                      child: IconButton(
-                        icon: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(color: decoration.colorScheme.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-                          child: Icon(Icons.edit_outlined, color: decoration.colorScheme.primary, size: 20),
-                        ),
-                        onPressed: ctrl.toggleEditMode,
-                        tooltip: 'Edit Profile',
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: IconButton(
+                      style: ButtonStyle(
+                        shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                        padding: WidgetStatePropertyAll(const EdgeInsets.all(8)),
+                        backgroundColor: WidgetStatePropertyAll(Colors.grey[100]),
                       ),
+                      icon: Icon(ctrl.isEditMode ? Icons.edit_off_rounded : Icons.edit_outlined, color: ctrl.isEditMode ? Colors.red : decoration.colorScheme.primary, size: 20),
+                      onPressed: ctrl.toggleEditMode,
+                      tooltip: 'Edit Profile',
                     ),
+                  ),
                 ],
               ),
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      _buildProfileHeader(ctrl),
-                      const SizedBox(height: 24),
-                      _buildPersonalInfoSection(ctrl),
-                      const SizedBox(height: 24),
-                      _buildClinicInfoSection(ctrl),
-                      if (ctrl.isEditMode) _buildEditActions(ctrl),
-                    ],
-                  ),
+                  child: Column(children: [_buildProfileHeader(ctrl), const SizedBox(height: 24), _buildPersonalInfoSection(ctrl), const SizedBox(height: 24), _buildClinicInfoSection(ctrl)]),
                 ),
               ),
             ],
@@ -320,45 +321,6 @@ class _ProfileState extends State<Profile> {
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: decoration.colorScheme.primary, width: 2),
         ),
-      ),
-    );
-  }
-
-  Widget _buildEditActions(ProfileCtrl ctrl) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 24),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: ctrl.toggleEditMode,
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                side: BorderSide(color: Colors.grey[300]!),
-              ),
-              child: Text(
-                'Cancel',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.w500, color: Colors.grey[700]),
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: ElevatedButton(
-              onPressed: ctrl.saveProfile,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: decoration.colorScheme.primary,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              child: Text(
-                'Save Changes',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.w500, color: Colors.white),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
