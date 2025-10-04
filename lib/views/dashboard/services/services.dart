@@ -149,9 +149,9 @@ class Services extends StatelessWidget {
                         child: Text(
                           service.description,
                           style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600], height: 1.4),
-                          maxLines: 3,
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                        ),
+                        ).paddingOnly(left: 12),
                       ),
                       Transform.scale(
                         scale: 0.8,

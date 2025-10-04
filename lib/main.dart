@@ -36,13 +36,9 @@ class _MyAppState extends State<MyApp> {
     return ToastificationWrapper(
       child: GetMaterialApp(
         builder: (BuildContext context, widget) {
-          return SafeArea(
-            top: false,
-            bottom: true,
-            child: MediaQuery(
-              data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(1.0)),
-              child: widget!,
-            ),
+          return MediaQuery(
+            data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(1.0)),
+            child: widget!,
           );
         },
         title: AppConfig.appName,

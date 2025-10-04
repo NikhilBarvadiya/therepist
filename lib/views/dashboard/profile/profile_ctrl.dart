@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:therepist/models/models.dart';
+import 'package:therepist/utils/helper.dart';
 
 class ProfileCtrl extends GetxController {
   var user = UserModel(
@@ -17,6 +20,8 @@ class ProfileCtrl extends GetxController {
   ).obs;
 
   bool isEditMode = false;
+
+  var avatar = Rx<File?>(null);
 
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
@@ -42,6 +47,7 @@ class ProfileCtrl extends GetxController {
     experienceController.text = user.value.experienceYears.toString();
     clinicNameController.text = user.value.clinicName;
     clinicAddressController.text = user.value.clinicAddress;
+    clinicAddressController.text = user.value.clinicAddress;
   }
 
   void toggleEditMode() {
@@ -50,6 +56,13 @@ class ProfileCtrl extends GetxController {
       _loadUserData();
     }
     update();
+  }
+
+  Future<void> pickAvatar() async {
+    final result = await helper.pickImage();
+    if (result != null) {
+      avatar.value = result;
+    }
   }
 
   void saveProfile() {

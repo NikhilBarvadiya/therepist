@@ -89,32 +89,35 @@ class _ProfileState extends State<Profile> {
       ),
       child: Row(
         children: [
-          Stack(
-            children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
-                ),
-                child: const Icon(Icons.person, size: 40, color: Colors.white),
-              ),
-              if (ctrl.isEditMode)
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: GestureDetector(
-                    onTap: () => Get.snackbar('Info', 'Profile picture upload coming soon'),
+          GestureDetector(
+            onTap: !ctrl.isEditMode ? null : () => ctrl.pickAvatar(),
+            child: Stack(
+              children: [
+                Obx(() {
+                  return Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
+                      image: ctrl.avatar.value != null && ctrl.avatar.value!.path.isNotEmpty ? DecorationImage(image: FileImage(ctrl.avatar.value!), fit: BoxFit.cover) : null,
+                    ),
+                    child: ctrl.avatar.value == null || ctrl.avatar.value!.path.isEmpty ? Icon(Icons.person, size: 40, color: Colors.white) : null,
+                  );
+                }),
+                if (ctrl.isEditMode)
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
                       child: Icon(Icons.camera_alt, size: 16, color: decoration.colorScheme.primary),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -156,7 +159,7 @@ class _ProfileState extends State<Profile> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 6),
             child: Row(
               children: [
                 Icon(Icons.person_outline, color: decoration.colorScheme.primary, size: 20),
@@ -169,6 +172,8 @@ class _ProfileState extends State<Profile> {
             ),
           ),
           if (ctrl.isEditMode) ...[
+            _buildEditField('Full Name', ctrl.nameController, Icons.person_2_rounded),
+            _buildEditField('Email Address', ctrl.emailController, Icons.email_rounded, isEmail: true),
             _buildEditField('Mobile Number', ctrl.mobileController, Icons.phone_outlined, isPhone: true),
             _buildEditField('Specialty', ctrl.specialtyController, Icons.medical_services_outlined),
             _buildEditField('Experience (Years)', ctrl.experienceController, Icons.work_history_outlined, isNumber: true),
@@ -193,7 +198,7 @@ class _ProfileState extends State<Profile> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 6),
             child: Row(
               children: [
                 Icon(Icons.business_outlined, color: decoration.colorScheme.primary, size: 20),
@@ -300,6 +305,7 @@ class _ProfileState extends State<Profile> {
 
   Widget _buildEditTextField(TextEditingController controller, String hintText, {bool isEmail = false}) {
     return TextField(
+      readOnly: true,
       controller: controller,
       keyboardType: isEmail ? TextInputType.emailAddress : TextInputType.text,
       style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.w500, fontSize: 14),

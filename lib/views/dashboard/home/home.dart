@@ -25,6 +25,7 @@ class Home extends StatelessWidget {
             pinned: true,
             floating: true,
             expandedHeight: 120,
+            automaticallyImplyLeading: false,
             flexibleSpace: FlexibleSpaceBar(
               collapseMode: CollapseMode.pin,
               background: Container(color: Colors.white),
@@ -79,22 +80,21 @@ class Home extends StatelessWidget {
   Widget _buildBannerSection() {
     final banners = [
       {
-        'image':
-            'https://scontent.fstv5-1.fna.fbcdn.net/v/t39.30808-6/459949820_3322185261250367_3655752685553337064_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=2285d6&_nc_ohc=ya0RXPMLlXkQ7kNvwGiLDYd&_nc_oc=AdmA4333Ns_HL5niNyBqpxZxSSGJExfUjwRJAvgnqkI_-6OUMjZuED6101gmpyCCCTQVDIpl0lilXUqYFXh8w68o&_nc_zt=23&_nc_ht=scontent.fstv5-1.fna&_nc_gid=CQd-O3m5GeM178t9xm0vsw&oh=00_AffrDDe-nn2BvCKKdLJiycPFu1VxlvIRE2HDZbi9lmJ7WQ&oe=68E59FF0',
+        'image': 'https://images.pexels.com/photos/3825529/pexels-photo-3825529.jpeg?auto=compress&cs=tinysrgb&w=1080',
         'title': 'Welcome to Our Clinic',
-        'subtitle': 'Expert physiotherapy services for all ages',
+        'subtitle': 'Where care meets expertise — your recovery starts here.',
         'color': Colors.blue[700]!,
       },
       {
-        'image': 'https://cdn.pixabay.com/photo/2025/04/24/10/42/physical-therapy-9555440_960_720.png',
+        'image': 'https://images.pexels.com/photos/4506107/pexels-photo-4506107.jpeg?auto=compress&cs=tinysrgb&w=1080',
         'title': 'Special Offer',
-        'subtitle': '20% off on your first session',
+        'subtitle': 'Enjoy 20% off your first physiotherapy session!',
         'color': Colors.green[700]!,
       },
       {
-        'image': 'https://cdn.pixabay.com/photo/2013/07/13/11/44/capsule-158568_960_720.png',
+        'image': 'https://images.pexels.com/photos/8376234/pexels-photo-8376234.jpeg?auto=compress&cs=tinysrgb&w=1080',
         'title': 'New Services',
-        'subtitle': 'Explore our maternity and pediatric programs',
+        'subtitle': 'Now offering maternity & pediatric physiotherapy programs.',
         'color': Colors.purple[700]!,
       },
     ];
@@ -187,7 +187,7 @@ class Home extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Pending Requests',
+                  'Patients Requests',
                   style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
                 ),
               ),
@@ -275,7 +275,7 @@ class Home extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 12, offset: const Offset(0, 4))],
+        boxShadow: [BoxShadow(color: Colors.white.withOpacity(0.08), blurRadius: 12, offset: const Offset(0, 4))],
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -325,7 +325,7 @@ class Home extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 12, offset: const Offset(0, 4))],
+        boxShadow: [BoxShadow(color: Colors.white.withOpacity(0.08), blurRadius: 12, offset: const Offset(0, 4))],
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -363,7 +363,7 @@ class Home extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(color: statusColor.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
                   child: Text(
-                    appointment.status,
+                    appointment.status.capitalizeFirst.toString(),
                     style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w500, color: statusColor),
                   ),
                 ),

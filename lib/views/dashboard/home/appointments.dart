@@ -15,97 +15,102 @@ class Appointments extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            elevation: 0,
-            toolbarHeight: 65,
-            backgroundColor: Colors.white,
-            pinned: true,
-            floating: true,
-            title: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Appointments',
-                  style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
-                ),
-                Obx(() => Text('${ctrl.filteredAppointments.length} total appointments', style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]))),
-              ],
-            ),
-            leading: IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(12)),
-                child: const Icon(Icons.arrow_back, color: Colors.black87),
-              ),
-              onPressed: () => Get.back(),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.only(left: 20, right: 20, top: 16, bottom: 4),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2))],
-                ),
-                child: TextField(
-                  controller: searchController,
-                  decoration: InputDecoration(
-                    hintText: 'Search appointments...',
-                    hintStyle: GoogleFonts.poppins(color: Colors.grey[600]),
-                    prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                    suffixIcon: searchController.text.isNotEmpty
-                        ? IconButton(
-                            icon: Icon(Icons.clear, color: Colors.grey[600]),
-                            onPressed: () {
-                              searchController.clear();
-                              ctrl.searchAppointments('');
-                            },
-                          )
-                        : null,
-                  ),
-                  onChanged: (value) {
-                    ctrl.searchAppointments(value);
-                  },
-                ),
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Obx(
-              () => SizedBox(
-                height: 60,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+      body: Container(
+        color: Colors.white,
+        child: SafeArea(
+          child: CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                elevation: 0,
+                toolbarHeight: 65,
+                backgroundColor: Colors.white,
+                pinned: true,
+                floating: true,
+                title: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildFilterChip('All', ctrl.selectedStatus.value == '', ctrl),
-                    _buildFilterChip('Confirmed', ctrl.selectedStatus.value == 'confirmed', ctrl),
-                    _buildFilterChip('Pending', ctrl.selectedStatus.value == 'pending', ctrl),
-                    _buildFilterChip('Cancelled', ctrl.selectedStatus.value == 'cancelled', ctrl),
-                    _buildFilterChip('Completed', ctrl.selectedStatus.value == 'completed', ctrl),
+                    Text(
+                      'Appointments',
+                      style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
+                    ),
+                    Obx(() => Text('${ctrl.filteredAppointments.length} total appointments', style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]))),
                   ],
                 ),
-              ),
-            ),
-          ),
-          Obx(
-            () => ctrl.filteredAppointments.isEmpty
-                ? SliverFillRemaining(child: _buildEmptyState())
-                : SliverList(
-                    delegate: SliverChildBuilderDelegate((context, index) {
-                      final appointment = ctrl.filteredAppointments[index];
-                      return Padding(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8), child: _buildAppointmentCard(appointment));
-                    }, childCount: ctrl.filteredAppointments.length),
+                leading: IconButton(
+                  icon: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(12)),
+                    child: const Icon(Icons.arrow_back, color: Colors.black87),
                   ),
+                  onPressed: () => Get.back(),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 20, right: 20, top: 16, bottom: 4),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2))],
+                    ),
+                    child: TextField(
+                      controller: searchController,
+                      decoration: InputDecoration(
+                        hintText: 'Search appointments...',
+                        hintStyle: GoogleFonts.poppins(color: Colors.grey[600]),
+                        prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                        suffixIcon: searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: Icon(Icons.clear, color: Colors.grey[600]),
+                                onPressed: () {
+                                  searchController.clear();
+                                  ctrl.searchAppointments('');
+                                },
+                              )
+                            : null,
+                      ),
+                      onChanged: (value) {
+                        ctrl.searchAppointments(value);
+                      },
+                    ),
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Obx(
+                  () => SizedBox(
+                    height: 60,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      children: [
+                        _buildFilterChip('All', ctrl.selectedStatus.value == '', ctrl),
+                        _buildFilterChip('Confirmed', ctrl.selectedStatus.value == 'confirmed', ctrl),
+                        _buildFilterChip('Pending', ctrl.selectedStatus.value == 'pending', ctrl),
+                        _buildFilterChip('Cancelled', ctrl.selectedStatus.value == 'cancelled', ctrl),
+                        _buildFilterChip('Completed', ctrl.selectedStatus.value == 'completed', ctrl),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Obx(
+                () => ctrl.filteredAppointments.isEmpty
+                    ? SliverFillRemaining(child: _buildEmptyState())
+                    : SliverList(
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          final appointment = ctrl.filteredAppointments[index];
+                          return Padding(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8), child: _buildAppointmentCard(appointment));
+                        }, childCount: ctrl.filteredAppointments.length),
+                      ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
