@@ -6,8 +6,9 @@ class ServiceModel {
   final String description;
   final IconData icon;
   bool isActive;
+  final double rate;
 
-  ServiceModel({required this.id, required this.name, required this.description, required this.icon, this.isActive = true});
+  ServiceModel({required this.id, required this.name, required this.description, required this.icon, this.isActive = false, this.rate = 0.0});
 }
 
 class UserModel {

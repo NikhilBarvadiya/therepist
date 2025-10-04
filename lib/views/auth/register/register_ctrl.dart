@@ -15,7 +15,13 @@ class RegisterCtrl extends GetxController {
 
   var isLoading = false.obs, isPasswordVisible = false.obs;
   var services = <ServiceModel>[
-    ServiceModel(id: 1, name: 'Ortho', description: 'Comprehensive rehabilitation for joint and muscle injuries, focusing on strength and mobility.', icon: Icons.fitness_center, isActive: true),
+    ServiceModel(
+      id: 1,
+      name: 'Ortho',
+      description: 'Comprehensive rehabilitation for joint and muscle injuries, focusing on strength and mobility.',
+      icon: Icons.fitness_center,
+      isActive: true,
+    ),
     ServiceModel(id: 2, name: 'Neuro', description: 'Specialized therapy for neurological conditions to enhance motor skills and coordination.', icon: Icons.psychology, isActive: false),
     ServiceModel(id: 3, name: 'Sports', description: 'Tailored recovery programs for athletes to regain peak performance post-injury.', icon: Icons.sports_tennis, isActive: true),
     ServiceModel(id: 4, name: 'Maternity', description: 'Supportive exercises for prenatal and postnatal care to promote maternal health.', icon: Icons.pregnant_woman, isActive: true),

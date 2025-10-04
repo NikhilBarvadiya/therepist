@@ -48,9 +48,9 @@ class _ServiceDetailsState extends State<ServiceDetails> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildServiceHeaderCard(widget.service),
+                  _buildServiceHeaderCard(widget.service, ctrl),
                   const SizedBox(height: 24),
-                  _buildDetailsSection(widget.service),
+                  _buildDetailsSection(widget.service, ctrl),
                   const SizedBox(height: 24),
                   _buildAdminControlsSection(ctrl),
                   const SizedBox(height: 24),
@@ -64,7 +64,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
     );
   }
 
-  Widget _buildServiceHeaderCard(ServiceModel service) {
+  Widget _buildServiceHeaderCard(ServiceModel service, ServicesCtrl ctrl) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -90,12 +90,30 @@ class _ServiceDetailsState extends State<ServiceDetails> {
                 ),
                 const SizedBox(height: 4),
                 Obx(() {
-                  final ctrl = Get.find<ServicesCtrl>();
                   final currentService = ctrl.services.firstWhere((s) => s.id == service.id);
                   return _buildStatusBadge(currentService.isActive);
                 }),
+                const SizedBox(height: 4),
+                _buildRateDisplay(service.rate, service.id, ctrl),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRateDisplay(double rate, int serviceId, ServicesCtrl ctrl) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(color: Colors.blue.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.currency_rupee, size: 14, color: Colors.blue[700]),
+          Text(
+            '${rate.toStringAsFixed(0)} per service',
+            style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.blue[700]),
           ),
         ],
       ),
@@ -128,7 +146,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
     );
   }
 
-  Widget _buildDetailsSection(ServiceModel service) {
+  Widget _buildDetailsSection(ServiceModel service, ServicesCtrl ctrl) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -145,6 +163,8 @@ class _ServiceDetailsState extends State<ServiceDetails> {
           ),
           const SizedBox(height: 16),
           _buildDetailItem(icon: Icons.description_outlined, label: 'Description', value: service.description),
+          const SizedBox(height: 12),
+          _buildDetailItem(icon: Icons.currency_rupee_outlined, label: 'Rate', value: '₹${service.rate.toStringAsFixed(0)} per session'),
           const SizedBox(height: 12),
           _buildDetailItem(icon: Icons.category_outlined, label: 'Category', value: 'Physiotherapy'),
           const SizedBox(height: 12),

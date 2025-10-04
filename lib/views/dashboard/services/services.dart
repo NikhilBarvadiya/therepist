@@ -124,19 +124,26 @@ class Services extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  spacing: 12.0,
                   children: [
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(color: decoration.colorScheme.primary.withOpacity(0.15), borderRadius: BorderRadius.circular(12)),
                       child: Icon(service.icon, color: decoration.colorScheme.primary, size: 24),
                     ),
+                    const SizedBox(width: 12),
                     Expanded(
-                      child: Text(
-                        service.name,
-                        style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            service.name,
+                            style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          _buildRateDisplay(service.rate, service.id, ctrl),
+                        ],
                       ),
                     ),
                     _buildStatusBadge(service.isActive),
@@ -171,6 +178,23 @@ class Services extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildRateDisplay(double rate, int serviceId, ServicesCtrl ctrl) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(color: Colors.blue.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.currency_rupee, size: 12, color: Colors.blue[700]),
+          Text(
+            '${rate.toStringAsFixed(0)}/Budget',
+            style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.blue[700]),
+          ),
+        ],
       ),
     );
   }
