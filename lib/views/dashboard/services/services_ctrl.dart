@@ -1,52 +1,100 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:therepist/models/models.dart';
+import 'package:therepist/views/auth/auth_service.dart';
+import '../../../models/service_model.dart';
 
 class ServicesCtrl extends GetxController {
-  var filteredServices = <ServiceModel>[].obs;
-
-  var services = <ServiceModel>[
-    ServiceModel(
-      id: 1,
-      name: 'Ortho',
-      description: 'Comprehensive rehabilitation for joint and muscle injuries, focusing on strength and mobility.',
-      icon: Icons.fitness_center,
-      isActive: true,
-      rate: 1200.0,
-    ),
-    ServiceModel(id: 2, name: 'Neuro', description: 'Specialized therapy for neurological conditions to enhance motor skills and coordination.', icon: Icons.psychology, isActive: false, rate: 1500.0),
-    ServiceModel(id: 3, name: 'Sports', description: 'Tailored recovery programs for athletes to regain peak performance post-injury.', icon: Icons.sports_tennis, isActive: true, rate: 1800.0),
-    ServiceModel(id: 4, name: 'Maternity', description: 'Supportive exercises for prenatal and postnatal care to promote maternal health.', icon: Icons.pregnant_woman, isActive: true, rate: 1000.0),
-    ServiceModel(id: 5, name: 'Fitness', description: 'Personalized fitness plans to improve strength, flexibility, and overall wellness.', icon: Icons.directions_run, isActive: false, rate: 800.0),
-    ServiceModel(id: 6, name: 'Geriatric', description: 'Gentle therapy for elderly patients to improve mobility and reduce pain.', icon: Icons.elderly, isActive: true, rate: 900.0),
-    ServiceModel(id: 7, name: 'Pediatric', description: 'Therapy for children to support developmental and physical milestones.', icon: Icons.child_care, isActive: true, rate: 1100.0),
-    ServiceModel(id: 8, name: 'Pain Management', description: 'Advanced techniques to alleviate chronic pain and improve quality of life.', icon: Icons.healing, isActive: false, rate: 1300.0),
-  ].obs;
+  final AuthService _authService = Get.find<AuthService>();
+  var services = <ServiceModel>[].obs, filteredServices = <ServiceModel>[].obs;
+  var isLoading = false.obs, isLoadMoreLoading = false.obs, hasMore = true.obs;
+  var currentPage = 1.obs;
+  var searchQuery = ''.obs, errorMessage = ''.obs;
 
   @override
   void onInit() {
     super.onInit();
-    filterServices();
+    loadServices();
   }
 
-  void filterServices() {
-    filteredServices.assignAll(services);
+  Future<void> loadServices({bool loadMore = false}) async {
+    if (isLoading.value) return;
+    try {
+      if (!loadMore) {
+        isLoading.value = true;
+        currentPage.value = 1;
+        hasMore.value = true;
+        services.clear();
+        filteredServices.clear();
+        errorMessage.value = '';
+      } else {
+        if (!hasMore.value || isLoadMoreLoading.value) return;
+        isLoadMoreLoading.value = true;
+      }
+      final response = await _authService.doctorServices(page: currentPage.value, search: searchQuery.value);
+      if (response != null && response['docs'] is List) {
+        final List newServices = response['docs'];
+        if (newServices.isNotEmpty) {
+          final parsedServices = newServices.map((item) => ServiceModel.fromJson(item)).toList();
+          if (loadMore) {
+            services.addAll(parsedServices);
+          } else {
+            services.assignAll(parsedServices);
+          }
+          filteredServices.assignAll(services);
+          final totalPages = response['totalPages'] ?? 1;
+          final currentPageNum = response['currentPage'] ?? currentPage.value;
+          hasMore.value = currentPageNum < totalPages;
+          if (hasMore.value) {
+            currentPage.value = currentPageNum + 1;
+          }
+        } else {
+          hasMore.value = false;
+        }
+      } else {
+        if (!loadMore) {
+          errorMessage.value = 'No services found';
+        }
+        hasMore.value = false;
+      }
+    } catch (e) {
+      errorMessage.value = 'Failed to load services: ${e.toString()}';
+      if (!loadMore) {
+        Get.snackbar('Error', errorMessage.value, snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white, duration: const Duration(seconds: 3));
+      }
+    } finally {
+      isLoading.value = false;
+      isLoadMoreLoading.value = false;
+      update();
+    }
   }
 
   void searchServices(String query) {
-    if (query.isEmpty) {
-      filterServices();
-    } else {
-      filteredServices.assignAll(services.where((s) => s.name.toLowerCase().contains(query.toLowerCase())).toList());
+    searchQuery.value = query.trim();
+    debounce<String>(searchQuery, (_) => loadServices(), time: const Duration(milliseconds: 500));
+  }
+
+  Future<void> toggleServiceStatus(String serviceId, bool isActive) async {
+    var response = await _authService.toggleService(serviceId: serviceId, isActive: isActive);
+    if (response != null) {
+      final index = services.indexWhere((s) => s.id == serviceId);
+      if (index != -1) {
+        services[index].isActive = isActive;
+        filteredServices.assignAll(services);
+        update();
+      }
     }
   }
 
-  void toggleServiceStatus(int serviceId, bool isActive) {
-    int index = services.indexWhere((e) => e.id == serviceId);
-    if (index != -1) {
-      services[index].isActive = isActive;
+  void loadMoreServices() {
+    if (hasMore.value && !isLoading.value && !isLoadMoreLoading.value) {
+      loadServices(loadMore: true);
     }
-    filterServices();
-    update();
+  }
+
+  Future<void> refreshServices() async => await loadServices();
+
+  void clearSearch() {
+    searchQuery.value = '';
+    loadServices();
   }
 }

@@ -7,9 +7,10 @@ class ServiceModel {
   final int? lowCharge;
   final int? highCharge;
   final IconData? icon;
-  final bool isActive;
+  final String? description;
+  bool isActive;
 
-  ServiceModel({required this.id, required this.name, this.charge, this.lowCharge, this.highCharge, this.icon, required this.isActive});
+  ServiceModel({required this.id, required this.name, this.charge, this.lowCharge, this.highCharge, this.icon, this.description, required this.isActive});
 
   factory ServiceModel.fromJson(Map<String, dynamic> json) {
     return ServiceModel(
@@ -20,6 +21,7 @@ class ServiceModel {
       highCharge: json['highCharge'] ?? 0,
       icon: _getIconFromString(json['icon'] ?? 'default'),
       isActive: json['isActive'] ?? true,
+      description: json['description'] ?? 'Professional service with customized treatment plans.',
     );
   }
 

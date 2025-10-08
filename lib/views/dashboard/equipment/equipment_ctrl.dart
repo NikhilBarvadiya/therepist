@@ -1,63 +1,100 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:therepist/models/models.dart';
-import 'package:therepist/utils/config/session.dart';
-import 'package:therepist/utils/storage.dart';
+import 'package:therepist/views/auth/auth_service.dart';
+import '../../../models/service_model.dart';
 
 class EquipmentCtrl extends GetxController {
-  var filteredEquipment = <EquipmentModel>[].obs;
-
-  var equipment = <EquipmentModel>[
-    EquipmentModel(id: 1, name: 'Cupping', description: 'Suction-based therapy to promote blood flow and relieve muscle tension.', icon: Icons.spa, isActive: true, rate: 1200.0),
-    EquipmentModel(id: 2, name: 'Tapping', description: 'Percussive therapy to stimulate muscles and improve circulation.', icon: Icons.touch_app, isActive: true, rate: 800.0),
-    EquipmentModel(id: 3, name: 'Needling', description: 'Dry needling to target trigger points and alleviate pain.', icon: Icons.medical_services, isActive: true, rate: 1500.0),
-    EquipmentModel(id: 4, name: 'Laser', description: 'Low-level laser therapy for pain relief and tissue repair.', icon: Icons.light, isActive: true, rate: 2000.0),
-    EquipmentModel(id: 5, name: 'Tens', description: 'Transcutaneous electrical nerve stimulation for pain management.', icon: Icons.electrical_services, isActive: true, rate: 1000.0),
-    EquipmentModel(id: 6, name: 'Ift', description: 'Interferential therapy for deep tissue pain relief and muscle stimulation.', icon: Icons.vibration, isActive: true, rate: 900.0),
-  ].obs;
+  final AuthService _authService = Get.find<AuthService>();
+  var equipment = <ServiceModel>[].obs, filteredEquipment = <ServiceModel>[].obs;
+  var isLoading = false.obs, isLoadMoreLoading = false.obs, hasMore = true.obs;
+  var currentPage = 1.obs;
+  var searchQuery = ''.obs, errorMessage = ''.obs;
 
   @override
   void onInit() {
     super.onInit();
-    filterEquipment();
+    loadServices();
   }
 
-  Future<void> filterEquipment() async {
-    final userData = await read(AppSession.userData);
-    if (userData != null) {
-      List equipments = userData["equipment"] ?? [];
-      if (equipments.isNotEmpty) {
-        for (var ele in equipment) {
-          ele.isActive = equipments.contains(ele.name);
+  Future<void> loadServices({bool loadMore = false}) async {
+    if (isLoading.value) return;
+    try {
+      if (!loadMore) {
+        isLoading.value = true;
+        currentPage.value = 1;
+        hasMore.value = true;
+        equipment.clear();
+        filteredEquipment.clear();
+        errorMessage.value = '';
+      } else {
+        if (!hasMore.value || isLoadMoreLoading.value) return;
+        isLoadMoreLoading.value = true;
+      }
+      final response = await _authService.doctorEquipment(page: currentPage.value, search: searchQuery.value);
+      if (response != null && response['docs'] is List) {
+        final List newServices = response['docs'];
+        if (newServices.isNotEmpty) {
+          final parsedServices = newServices.map((item) => ServiceModel.fromJson(item)).toList();
+          if (loadMore) {
+            equipment.addAll(parsedServices);
+          } else {
+            equipment.assignAll(parsedServices);
+          }
+          filteredEquipment.assignAll(equipment);
+          final totalPages = response['totalPages'] ?? 1;
+          final currentPageNum = response['currentPage'] ?? currentPage.value;
+          hasMore.value = currentPageNum < totalPages;
+          if (hasMore.value) {
+            currentPage.value = currentPageNum + 1;
+          }
+        } else {
+          hasMore.value = false;
         }
+      } else {
+        if (!loadMore) {
+          errorMessage.value = 'No services found';
+        }
+        hasMore.value = false;
+      }
+    } catch (e) {
+      errorMessage.value = 'Failed to load services: ${e.toString()}';
+      if (!loadMore) {
+        Get.snackbar('Error', errorMessage.value, snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white, duration: const Duration(seconds: 3));
+      }
+    } finally {
+      isLoading.value = false;
+      isLoadMoreLoading.value = false;
+      update();
+    }
+  }
+
+  void searchServices(String query) {
+    searchQuery.value = query.trim();
+    debounce<String>(searchQuery, (_) => loadServices(), time: const Duration(milliseconds: 500));
+  }
+
+  Future<void> toggleServiceStatus(String equipmentId, bool isActive) async {
+    var response = await _authService.toggleEquipment(equipmentId: equipmentId, isActive: isActive);
+    if (response != null) {
+      final index = equipment.indexWhere((s) => s.id == equipmentId);
+      if (index != -1) {
+        equipment[index].isActive = isActive;
+        filteredEquipment.assignAll(equipment);
+        update();
       }
     }
-    filteredEquipment.assignAll(equipment);
   }
 
-  void searchEquipment(String query) {
-    if (query.isEmpty) {
-      filterEquipment();
-    } else {
-      filteredEquipment.assignAll(equipment.where((e) => e.name.toLowerCase().contains(query.toLowerCase())).toList());
+  void loadMoreServices() {
+    if (hasMore.value && !isLoading.value && !isLoadMoreLoading.value) {
+      loadServices(loadMore: true);
     }
   }
 
-  Future<void> toggleEquipmentStatus(int equipmentId, bool isActive) async {
-    int index = equipment.indexWhere((e) => e.id == equipmentId);
-    if (index != -1) {
-      equipment[index] = equipment[index].copyWith(isActive: isActive);
-      final userData = await read(AppSession.userData);
-      if (userData != null) {
-        userData['equipment'] = getSelectedEquipment().map((e) => e.name).toList();
-        await write(AppSession.userData, userData);
-      }
-    }
-    filterEquipment();
-    update();
-  }
+  Future<void> refreshServices() async => await loadServices();
 
-  List<EquipmentModel> getSelectedEquipment() {
-    return equipment.where((e) => e.isActive == true).toList();
+  void clearSearch() {
+    searchQuery.value = '';
+    loadServices();
   }
 }

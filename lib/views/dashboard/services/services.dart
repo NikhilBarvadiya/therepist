@@ -1,104 +1,121 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:therepist/models/models.dart';
 import 'package:therepist/utils/decoration.dart';
-import 'package:therepist/views/dashboard/services/service_details.dart';
 import 'package:therepist/views/dashboard/services/services_ctrl.dart';
+import '../../../models/service_model.dart';
 
 class Services extends StatelessWidget {
-  const Services({super.key});
+  Services({super.key});
+
+  final TextEditingController searchController = TextEditingController();
+  final ScrollController scrollController = ScrollController();
 
   @override
   Widget build(BuildContext context) {
-    final TextEditingController searchController = TextEditingController();
     return GetBuilder<ServicesCtrl>(
       init: ServicesCtrl(),
       builder: (ctrl) {
+        scrollController.addListener(() {
+          if (scrollController.position.pixels >= scrollController.position.maxScrollExtent - 200) {
+            ctrl.loadMoreServices();
+          }
+        });
         return Scaffold(
           backgroundColor: Colors.grey[50],
-          body: CustomScrollView(
-            slivers: [
-              SliverAppBar(
-                elevation: 0,
-                toolbarHeight: 65,
-                backgroundColor: Colors.white,
-                pinned: true,
-                floating: true,
-                automaticallyImplyLeading: false,
-                title: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Services',
-                      style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
+          body: RefreshIndicator(
+            onRefresh: () => ctrl.refreshServices(),
+            child: CustomScrollView(
+              controller: scrollController,
+              slivers: [
+                SliverAppBar(
+                  elevation: 0,
+                  toolbarHeight: 65,
+                  backgroundColor: Colors.white,
+                  pinned: true,
+                  floating: true,
+                  automaticallyImplyLeading: false,
+                  title: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Services',
+                        style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
+                      ),
+                      Obx(() => Text('${ctrl.filteredServices.length} services available', style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]))),
+                    ],
+                  ),
+                  actions: [
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: IconButton(
+                        style: ButtonStyle(
+                          shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                          padding: WidgetStatePropertyAll(const EdgeInsets.all(8)),
+                          backgroundColor: WidgetStatePropertyAll(Colors.grey[100]),
+                        ),
+                        icon: const Icon(Icons.refresh, color: Colors.black87, size: 22),
+                        onPressed: () => ctrl.refreshServices(),
+                        tooltip: 'Refresh Services',
+                      ),
                     ),
-                    Obx(() => Text('${ctrl.filteredServices.length} services available', style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]))),
                   ],
                 ),
-                actions: [
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
-                    child: IconButton(
-                      style: ButtonStyle(
-                        shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                        padding: WidgetStatePropertyAll(const EdgeInsets.all(8)),
-                        backgroundColor: WidgetStatePropertyAll(Colors.grey[100]),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 20, right: 20, top: 16),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2))],
                       ),
-                      icon: const Icon(Icons.refresh, color: Colors.black87, size: 22),
-                      onPressed: () => ctrl.filterServices(),
-                      tooltip: 'Refresh Services',
-                    ),
-                  ),
-                ],
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 20, right: 20, top: 16),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2))],
-                    ),
-                    child: TextField(
-                      controller: searchController,
-                      decoration: InputDecoration(
-                        hintText: 'Search services...',
-                        hintStyle: GoogleFonts.poppins(color: Colors.grey[600]),
-                        prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                        suffixIcon: searchController.text.isNotEmpty
-                            ? IconButton(
-                                icon: Icon(Icons.clear, color: Colors.grey[600]),
-                                onPressed: () {
-                                  searchController.clear();
-                                  ctrl.searchServices('');
-                                },
-                              )
-                            : null,
+                      child: TextField(
+                        controller: searchController,
+                        decoration: InputDecoration(
+                          hintText: 'Search services...',
+                          hintStyle: GoogleFonts.poppins(color: Colors.grey[600]),
+                          prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                          suffixIcon: searchController.text.isNotEmpty
+                              ? IconButton(
+                                  icon: Icon(Icons.clear, color: Colors.grey[600]),
+                                  onPressed: () {
+                                    searchController.clear();
+                                    ctrl.clearSearch();
+                                  },
+                                )
+                              : null,
+                        ),
+                        onChanged: (value) => ctrl.searchServices(value),
                       ),
-                      onChanged: (value) => ctrl.searchServices(value),
                     ),
                   ),
                 ),
-              ),
-              Obx(
-                () => ctrl.filteredServices.isEmpty
-                    ? SliverFillRemaining(child: _buildEmptyState())
-                    : SliverPadding(
-                        padding: const EdgeInsets.all(20),
-                        sliver: SliverList(
-                          delegate: SliverChildBuilderDelegate((context, index) {
-                            final service = ctrl.filteredServices[index];
-                            return _buildServiceCard(context, service, ctrl);
-                          }, childCount: ctrl.filteredServices.length),
-                        ),
-                      ),
-              ),
-            ],
+                Obx(() {
+                  if (ctrl.isLoading.value && ctrl.filteredServices.isEmpty) {
+                    return SliverFillRemaining(child: _buildLoadingState());
+                  }
+                  if (ctrl.filteredServices.isEmpty && !ctrl.isLoading.value) {
+                    return SliverFillRemaining(child: _buildEmptyState(ctrl));
+                  }
+                  return SliverPadding(
+                    padding: const EdgeInsets.all(20),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        if (index == ctrl.filteredServices.length) {
+                          return _buildLoadMoreIndicator(ctrl);
+                        }
+                        final service = ctrl.filteredServices[index];
+                        return _buildServiceCard(context, service, ctrl);
+                      }, childCount: ctrl.filteredServices.length + (ctrl.hasMore.value ? 1 : 0)),
+                    ),
+                  );
+                }),
+              ],
+            ),
           ),
         );
       },
@@ -107,94 +124,96 @@ class Services extends StatelessWidget {
 
   Widget _buildServiceCard(BuildContext context, ServiceModel service, ServicesCtrl ctrl) {
     return Container(
-      margin: EdgeInsets.only(bottom: 15),
+      margin: const EdgeInsets.only(bottom: 15),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.white.withOpacity(0.08), blurRadius: 12, offset: const Offset(0, 4))],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 12, offset: const Offset(0, 4))],
       ),
       child: Material(
         color: Colors.transparent,
-        child: InkWell(
-          onTap: () => Get.to(() => ServiceDetails(service: service)),
-          borderRadius: BorderRadius.circular(20),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(color: decoration.colorScheme.primary.withOpacity(0.15), borderRadius: BorderRadius.circular(12)),
-                      child: Icon(service.icon, color: decoration.colorScheme.primary, size: 24),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(color: decoration.colorScheme.primary.withOpacity(0.15), borderRadius: BorderRadius.circular(12)),
+                    child: Icon(service.icon ?? Icons.miscellaneous_services, color: decoration.colorScheme.primary, size: 24),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          service.name,
+                          style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        _buildRateDisplay(service),
+                      ],
                     ),
-                    const SizedBox(width: 12),
+                  ),
+                  _buildStatusBadge(service.isActive),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Container(
+                decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(12)),
+                child: Row(
+                  children: [
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            service.name,
-                            style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 4),
-                          _buildRateDisplay(service.rate, service.id, ctrl),
-                        ],
+                      child: Text(
+                        service.description ?? 'Professional service with customized treatment plans.',
+                        style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600], height: 1.4),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ).paddingOnly(left: 12),
+                    ),
+                    Transform.scale(
+                      scale: 0.8,
+                      child: Switch(
+                        value: service.isActive,
+                        activeColor: decoration.colorScheme.primary,
+                        inactiveTrackColor: Colors.grey[400],
+                        onChanged: (value) => ctrl.toggleServiceStatus(service.id, value),
                       ),
                     ),
-                    _buildStatusBadge(service.isActive),
                   ],
                 ),
-                const SizedBox(height: 12),
-                Container(
-                  decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(12)),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          service.description,
-                          style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600], height: 1.4),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ).paddingOnly(left: 12),
-                      ),
-                      Transform.scale(
-                        scale: 0.8,
-                        child: Switch(
-                          value: service.isActive,
-                          activeColor: decoration.colorScheme.primary,
-                          inactiveTrackColor: Colors.grey[400],
-                          onChanged: (value) => ctrl.toggleServiceStatus(service.id, value),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildRateDisplay(double rate, int serviceId, ServicesCtrl ctrl) {
+  Widget _buildRateDisplay(ServiceModel service) {
+    final charge = service.charge ?? 0;
+    final lowCharge = service.lowCharge ?? 0;
+    final highCharge = service.highCharge ?? 0;
+    String rateText;
+    if (charge > 0) {
+      rateText = '₹$charge/session';
+    } else if (lowCharge > 0 && highCharge > 0) {
+      rateText = '₹$lowCharge - ₹$highCharge';
+    } else {
+      rateText = 'Contact for pricing';
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(color: Colors.blue.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.currency_rupee, size: 12, color: Colors.blue[700]),
-          Text(
-            '${rate.toStringAsFixed(0)}/Budget',
-            style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.blue[700]),
-          ),
-        ],
+      child: Text(
+        rateText,
+        style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.blue[700]),
       ),
     );
   }
@@ -221,7 +240,21 @@ class Services extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildLoadingState() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const CircularProgressIndicator(color: Color(0xFF6C63FF)),
+        const SizedBox(height: 20),
+        Text(
+          'Loading Services...',
+          style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey[600]),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmptyState(ServicesCtrl ctrl) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -235,28 +268,41 @@ class Services extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 40),
           child: Text(
-            'Try adjusting your search criteria or check back later for new services',
+            ctrl.searchQuery.value.isEmpty ? 'No services available at the moment. Check back later.' : 'No services found for "${ctrl.searchQuery.value}". Try different keywords.',
             style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[500]),
             textAlign: TextAlign.center,
           ),
         ),
         const SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: () {
-            final ctrl = Get.find<ServicesCtrl>();
-            ctrl.searchServices('');
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Color(0xFF6C63FF),
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        if (ctrl.searchQuery.value.isNotEmpty)
+          ElevatedButton(
+            onPressed: () {
+              searchController.clear();
+              ctrl.clearSearch();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6C63FF),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: Text(
+              'Clear Search',
+              style: GoogleFonts.poppins(fontWeight: FontWeight.w500, color: Colors.white),
+            ),
           ),
-          child: Text(
-            'Clear Search',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.w500, color: Colors.white),
-          ),
-        ),
       ],
     );
+  }
+
+  Widget _buildLoadMoreIndicator(ServicesCtrl ctrl) {
+    return Obx(() {
+      if (ctrl.isLoadMoreLoading.value) {
+        return const Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Center(child: CircularProgressIndicator(color: Color(0xFF6C63FF))),
+        );
+      }
+      return const SizedBox();
+    });
   }
 }
