@@ -9,6 +9,7 @@ import 'package:therepist/utils/config/app_config.dart';
 import 'package:therepist/utils/routes/route_methods.dart';
 import 'package:therepist/utils/routes/route_name.dart';
 import 'package:therepist/utils/theme/light.dart';
+import 'package:therepist/views/preload.dart';
 import 'package:therepist/views/restart.dart';
 import 'package:toastification/toastification.dart';
 
@@ -20,6 +21,7 @@ Future<void> main() async {
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(statusBarColor: Color(0xFF10B981), statusBarIconBrightness: Brightness.light));
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+  await preload();
   runApp(const RestartApp(child: MyApp()));
 }
 

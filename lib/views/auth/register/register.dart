@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:therepist/models/models.dart';
 import 'package:therepist/utils/decoration.dart';
 import 'package:therepist/views/auth/register/register_ctrl.dart';
 import 'package:therepist/views/auth/register/ui/multi_selection_bottom_sheet.dart';
+
+import '../../../models/service_model.dart' show ServiceModel;
 
 class Register extends StatelessWidget {
   const Register({super.key});
@@ -46,6 +47,10 @@ class Register extends StatelessWidget {
                       const SizedBox(height: 32),
                       _buildSectionHeader('Personal Information'),
                       const SizedBox(height: 16),
+                      _buildLabel(context, 'Name'),
+                      const SizedBox(height: 8),
+                      _buildTextField(controller: ctrl.nameCtrl, hint: 'Enter your name', icon: Icons.person_2_rounded),
+                      const SizedBox(height: 16),
                       _buildLabel(context, 'Email'),
                       const SizedBox(height: 8),
                       _buildTextField(controller: ctrl.emailCtrl, hint: 'Enter your email', icon: Icons.email_outlined, keyboardType: TextInputType.emailAddress),
@@ -66,6 +71,10 @@ class Register extends StatelessWidget {
                       _buildLabel(context, 'Mobile Number'),
                       const SizedBox(height: 8),
                       _buildTextField(controller: ctrl.mobileCtrl, hint: 'Enter your mobile number', icon: Icons.phone_outlined, keyboardType: TextInputType.phone, maxLength: 10),
+                      const SizedBox(height: 16),
+                      _buildLabel(context, 'Address'),
+                      const SizedBox(height: 8),
+                      _buildTextField(controller: ctrl.addressCtrl, hint: 'Enter your address', icon: Icons.home_outlined, maxLines: 2),
                       const SizedBox(height: 24),
                       _buildSectionHeader('Professional Information'),
                       const SizedBox(height: 16),
@@ -76,6 +85,14 @@ class Register extends StatelessWidget {
                       _buildLabel(context, 'Specialty'),
                       const SizedBox(height: 8),
                       _buildTextField(controller: ctrl.specialtyCtrl, hint: 'Enter specialty', icon: Icons.person_outline),
+                      const SizedBox(height: 16),
+                      _buildLabel(context, 'Experience (Years)'),
+                      const SizedBox(height: 8),
+                      _buildExperienceField(ctrl),
+                      const SizedBox(height: 16),
+                      _buildLabel(context, 'Practitioner Type'),
+                      const SizedBox(height: 8),
+                      _buildTypeField(context, ctrl),
                       const SizedBox(height: 24),
                       _buildSectionHeader('Services & Equipment'),
                       const SizedBox(height: 16),
@@ -109,6 +126,8 @@ class Register extends StatelessWidget {
                       const SizedBox(height: 24),
                       _buildTermsAgreement(context),
                       const SizedBox(height: 24),
+                      _buildLocationStatus(ctrl),
+                      const SizedBox(height: 24),
                       Obx(() => _buildRegisterButton(ctrl, context)),
                       const SizedBox(height: 24),
                       _buildLoginRedirect(context, ctrl),
@@ -116,13 +135,210 @@ class Register extends StatelessWidget {
                     ],
                   ),
                 ),
-                // Back Button
                 _buildBackButton(),
               ],
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildExperienceField(RegisterCtrl ctrl) {
+    return TextFormField(
+      controller: ctrl.experienceCtrl,
+      keyboardType: TextInputType.number,
+      decoration: InputDecoration(
+        hintText: 'Enter years of experience',
+        prefixIcon: const Icon(Icons.work_history_rounded, size: 20, color: Color(0xFF10B981)),
+        suffixText: 'years',
+        suffixStyle: const TextStyle(color: Color(0xFF6B7280)),
+        filled: true,
+        fillColor: const Color(0xFFF9FAFB),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFF10B981), width: 2),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter experience';
+        }
+        final years = int.tryParse(value);
+        if (years == null || years < 0 || years > 50) {
+          return 'Please enter valid experience (0-50 years)';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildTypeField(BuildContext context, RegisterCtrl ctrl) {
+    return Obx(
+      () => Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFFF9FAFB),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE5E7EB)),
+        ),
+        child: Column(
+          children: [
+            _buildTypeOption(
+              context: context,
+              title: 'Regular Practitioner',
+              subtitle: 'Full professional with complete practice rights',
+              value: 'Regular',
+              groupValue: ctrl.practitionerType.value,
+              onChanged: (value) => ctrl.setPractitionerType(value!),
+            ),
+            const Divider(height: 1, color: Color(0xFFE5E7EB)),
+            _buildTypeOption(
+              context: context,
+              title: 'Intern',
+              subtitle: 'Training or under supervision',
+              value: 'Intern',
+              groupValue: ctrl.practitionerType.value,
+              onChanged: (value) => ctrl.setPractitionerType(value!),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTypeOption({
+    required BuildContext context,
+    required String title,
+    required String subtitle,
+    required String value,
+    required String? groupValue,
+    required ValueChanged<String?> onChanged,
+  }) {
+    final isSelected = groupValue == value;
+    return InkWell(
+      onTap: () => onChanged(value),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF10B981).withOpacity(0.05) : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: isSelected ? Border.all(color: const Color(0xFF10B981), width: 1.5) : null,
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: isSelected ? const Color(0xFF10B981) : const Color(0xFFD1D5DB), width: 2),
+                color: isSelected ? const Color(0xFF10B981) : Colors.transparent,
+              ),
+              child: isSelected ? const Icon(Icons.check_rounded, size: 12, color: Colors.white) : null,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: isSelected ? const Color(0xFF10B981) : const Color(0xFF111827)),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(subtitle, style: TextStyle(fontSize: 12, color: isSelected ? const Color(0xFF10B981).withOpacity(0.8) : const Color(0xFF6B7280))),
+                ],
+              ),
+            ),
+            if (isSelected)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(color: const Color(0xFF10B981).withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
+                child: Text(
+                  value,
+                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF10B981)),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLocationStatus(RegisterCtrl ctrl) {
+    return Obx(
+      () => Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: ctrl.locationStatus.value.contains('successfully')
+              ? const Color(0xFFD1FAE5)
+              : ctrl.locationStatus.value.contains('Failed') || ctrl.locationStatus.value.contains('denied')
+              ? const Color(0xFFFEE2E2)
+              : const Color(0xFFFEF3C7),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: ctrl.locationStatus.value.contains('successfully')
+                ? const Color(0xFF10B981)
+                : ctrl.locationStatus.value.contains('Failed') || ctrl.locationStatus.value.contains('denied')
+                ? const Color(0xFFEF4444)
+                : const Color(0xFFF59E0B),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              ctrl.locationStatus.value.contains('successfully')
+                  ? Icons.check_circle_rounded
+                  : ctrl.locationStatus.value.contains('Failed') || ctrl.locationStatus.value.contains('denied')
+                  ? Icons.error_outline_rounded
+                  : Icons.location_searching_rounded,
+              color: ctrl.locationStatus.value.contains('successfully')
+                  ? const Color(0xFF10B981)
+                  : ctrl.locationStatus.value.contains('Failed') || ctrl.locationStatus.value.contains('denied')
+                  ? const Color(0xFFEF4444)
+                  : const Color(0xFFF59E0B),
+              size: 20,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    ctrl.isGettingLocation.value ? 'Getting Location...' : 'Location Status',
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF374151)),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    ctrl.locationStatus.value,
+                    style: TextStyle(fontSize: 11, color: const Color(0xFF6B7280), fontWeight: ctrl.locationStatus.value.contains('successfully') ? FontWeight.w600 : FontWeight.normal),
+                  ),
+                ],
+              ),
+            ),
+            if (ctrl.locationStatus.value.contains('Failed') || ctrl.locationStatus.value.contains('denied'))
+              TextButton(
+                onPressed: ctrl.retryLocation,
+                style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), minimumSize: Size.zero),
+                child: const Text(
+                  'Retry',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF2563EB)),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -149,12 +365,15 @@ class Register extends StatelessWidget {
     IconData? suffixIcon,
     VoidCallback? onSuffixIconTap,
     int? maxLength,
+    int maxLines = 1,
   }) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       obscureText: obscureText,
       maxLength: maxLength,
+      maxLines: maxLines,
+      minLines: 1,
       decoration: InputDecoration(
         hintText: hint,
         prefixIcon: Icon(icon, size: 20, color: const Color(0xFF10B981)),
@@ -383,7 +602,7 @@ class Register extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (context) => ClipRRect(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        child: MultiSelectBottomSheet(title: 'Select Services', items: ctrl.services, selectedItems: ctrl.selectedServices, onSelectionChanged: ctrl.updateSelectedServices, itemType: 'services'),
+        child: MultiSelectBottomSheet(title: 'Select Services', selectedItems: ctrl.selectedServices, onSelectionChanged: ctrl.updateSelectedServices, itemType: 'services'),
       ),
     );
   }
@@ -397,13 +616,7 @@ class Register extends StatelessWidget {
       builder: (context) {
         return ClipRRect(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          child: MultiSelectBottomSheet(
-            title: 'Select Equipment',
-            items: ctrl.equipment,
-            selectedItems: ctrl.selectedEquipment,
-            onSelectionChanged: ctrl.updateSelectedEquipment,
-            itemType: 'equipment',
-          ),
+          child: MultiSelectBottomSheet(title: 'Select Equipment', selectedItems: ctrl.selectedEquipment, onSelectionChanged: ctrl.updateSelectedEquipment, itemType: 'equipment'),
         );
       },
     );

@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:therepist/utils/config/session.dart';
 import 'package:therepist/utils/routes/route_name.dart';
-import 'package:therepist/utils/storage.dart';
 import 'package:therepist/utils/toaster.dart';
+import 'package:therepist/views/auth/auth_service.dart';
 
 class LoginCtrl extends GetxController {
   final emailCtrl = TextEditingController();
   final passwordCtrl = TextEditingController();
   var isLoading = false.obs, isPasswordVisible = false.obs;
+
+  AuthService get authService => Get.find<AuthService>();
 
   void togglePasswordVisibility() => isPasswordVisible.toggle();
 
@@ -28,10 +29,7 @@ class LoginCtrl extends GetxController {
     isLoading.value = true;
     try {
       final request = {'email': emailCtrl.text.trim(), 'password': passwordCtrl.text.trim()};
-      await write(AppSession.token, DateTime.now().toIso8601String());
-      await write(AppSession.userData, request);
-      toaster.success("Welcome back...");
-      Get.toNamed(AppRouteNames.dashboard);
+      await authService.login(request);
     } finally {
       emailCtrl.clear();
       passwordCtrl.clear();

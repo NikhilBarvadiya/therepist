@@ -1,56 +1,93 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:therepist/models/models.dart';
-import 'package:therepist/utils/config/session.dart';
 import 'package:therepist/utils/routes/route_name.dart';
-import 'package:therepist/utils/storage.dart';
 import 'package:therepist/utils/toaster.dart';
+import 'package:therepist/views/auth/auth_service.dart';
+import '../../../models/service_model.dart';
 
 class RegisterCtrl extends GetxController {
+  final nameCtrl = TextEditingController();
   final emailCtrl = TextEditingController();
   final passwordCtrl = TextEditingController();
   final mobileCtrl = TextEditingController();
   final clinicCtrl = TextEditingController();
   final specialtyCtrl = TextEditingController();
+  final addressCtrl = TextEditingController();
+  final experienceCtrl = TextEditingController();
 
-  var isLoading = false.obs, isPasswordVisible = false.obs;
-  var services = <ServiceModel>[
-    ServiceModel(
-      id: 1,
-      name: 'Ortho',
-      description: 'Comprehensive rehabilitation for joint and muscle injuries, focusing on strength and mobility.',
-      icon: Icons.fitness_center,
-      isActive: true,
-    ),
-    ServiceModel(id: 2, name: 'Neuro', description: 'Specialized therapy for neurological conditions to enhance motor skills and coordination.', icon: Icons.psychology, isActive: false),
-    ServiceModel(id: 3, name: 'Sports', description: 'Tailored recovery programs for athletes to regain peak performance post-injury.', icon: Icons.sports_tennis, isActive: true),
-    ServiceModel(id: 4, name: 'Maternity', description: 'Supportive exercises for prenatal and postnatal care to promote maternal health.', icon: Icons.pregnant_woman, isActive: true),
-    ServiceModel(id: 5, name: 'Fitness', description: 'Personalized fitness plans to improve strength, flexibility, and overall wellness.', icon: Icons.directions_run, isActive: false),
-    ServiceModel(id: 6, name: 'Geriatric', description: 'Gentle therapy for elderly patients to improve mobility and reduce pain.', icon: Icons.elderly, isActive: true),
-    ServiceModel(id: 7, name: 'Pediatric', description: 'Therapy for children to support developmental and physical milestones.', icon: Icons.child_care, isActive: true),
-    ServiceModel(id: 8, name: 'Pain Management', description: 'Advanced techniques to alleviate chronic pain and improve quality of life.', icon: Icons.healing, isActive: false),
-  ].obs;
-  var equipment = <ServiceModel>[
-    ServiceModel(id: 1, name: 'Cupping', description: 'Suction-based therapy to promote blood flow and relieve muscle tension.', icon: Icons.spa, isActive: true),
-    ServiceModel(id: 2, name: 'Tapping', description: 'Percussive therapy to stimulate muscles and improve circulation.', icon: Icons.touch_app, isActive: true),
-    ServiceModel(id: 3, name: 'Needling', description: 'Dry needling to target trigger points and alleviate pain.', icon: Icons.medical_services, isActive: true),
-    ServiceModel(id: 4, name: 'Laser', description: 'Low-level laser therapy for pain relief and tissue repair.', icon: Icons.light, isActive: true),
-    ServiceModel(id: 5, name: 'Tens', description: 'Transcutaneous electrical nerve stimulation for pain management.', icon: Icons.electrical_services, isActive: true),
-    ServiceModel(id: 6, name: 'Ift', description: 'Interferential therapy for deep tissue pain relief and muscle stimulation.', icon: Icons.vibration, isActive: true),
-  ].obs;
+  var isLoading = false.obs, isPasswordVisible = false.obs, isGettingLocation = false.obs;
+  var coordinates = '["0.0", "0.0"]'.obs, locationStatus = 'Fetching location...'.obs;
+  var practitionerType = 'Regular'.obs;
+
+  AuthService get authService => Get.find<AuthService>();
+
+  var services = <ServiceModel>[].obs;
+  var equipment = <ServiceModel>[].obs;
   var selectedServices = <ServiceModel>[].obs, selectedEquipment = <ServiceModel>[].obs;
+
+  @override
+  void onInit() {
+    _fetchCurrentLocation();
+    super.onInit();
+  }
+
+  void setPractitionerType(String type) {
+    practitionerType.value = type;
+  }
+
+  Future<void> retryLocation() async => await _fetchCurrentLocation();
+
+  Future<void> _fetchCurrentLocation() async {
+    isGettingLocation.value = true;
+    locationStatus.value = 'Checking location permissions...';
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        locationStatus.value = 'Location services disabled';
+        toaster.warning('Please enable location services for better experience');
+        isGettingLocation.value = false;
+        return;
+      }
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        locationStatus.value = 'Requesting location permission...';
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          locationStatus.value = 'Location permission denied';
+          toaster.warning('Location permission is required for better service');
+          isGettingLocation.value = false;
+          return;
+        }
+      }
+      if (permission == LocationPermission.deniedForever) {
+        locationStatus.value = 'Location permission permanently denied';
+        toaster.warning('Please enable location permissions in app settings');
+        isGettingLocation.value = false;
+        return;
+      }
+      locationStatus.value = 'Getting your location...';
+      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high, timeLimit: const Duration(seconds: 15));
+      coordinates.value = '["${position.latitude}", "${position.longitude}"]';
+      locationStatus.value = 'Location fetched successfully!';
+    } catch (e) {
+      locationStatus.value = 'Failed to get location';
+      toaster.error('Location error: ${e.toString()}');
+    } finally {
+      isGettingLocation.value = false;
+    }
+  }
 
   void togglePasswordVisibility() => isPasswordVisible.toggle();
 
-  void updateSelectedServices(List<ServiceModel> newSelection) {
-    selectedServices.assignAll(newSelection);
-  }
+  void updateSelectedServices(List<ServiceModel> newSelection) => selectedServices.assignAll(newSelection);
 
-  void updateSelectedEquipment(List<ServiceModel> newSelection) {
-    selectedEquipment.assignAll(newSelection);
-  }
+  void updateSelectedEquipment(List<ServiceModel> newSelection) => selectedEquipment.assignAll(newSelection);
 
   Future<void> register() async {
+    if (nameCtrl.text.isEmpty) {
+      return toaster.warning('Please enter your name');
+    }
     if (emailCtrl.text.isEmpty) {
       return toaster.warning('Please enter your email');
     }
@@ -75,35 +112,53 @@ class RegisterCtrl extends GetxController {
     if (specialtyCtrl.text.isEmpty) {
       return toaster.warning('Please enter the specialty');
     }
+    if (experienceCtrl.text.isEmpty) {
+      return toaster.warning('Please enter your experience');
+    }
+    final experience = int.tryParse(experienceCtrl.text);
+    if (experience == null || experience < 0 || experience > 50) {
+      return toaster.warning('Please enter valid experience (0-50 years)');
+    }
     if (selectedServices.isEmpty) {
       return toaster.warning('Please select at least one service');
     }
     if (selectedEquipment.isEmpty) {
       return toaster.warning('Please select at least one equipment');
     }
+    if (addressCtrl.text.isEmpty) {
+      return toaster.warning('Please enter your address');
+    }
+
     isLoading.value = true;
     try {
+      List servicesIds = selectedServices.map((e) => {"id": e.id}).toList();
+      List equipmentIds = selectedEquipment.map((e) => {"id": e.id}).toList();
       final request = {
+        'name': nameCtrl.text.trim(),
         'email': emailCtrl.text.trim(),
         'password': passwordCtrl.text.trim(),
         'mobile': mobileCtrl.text.trim(),
-        'clinic': clinicCtrl.text.trim(),
-        'specialty': specialtyCtrl.text.trim(),
-        'services': selectedServices.map((e) => e.name).toList(),
-        'equipment': selectedEquipment.map((e) => e.name).toList(),
+        'clinicName': clinicCtrl.text.trim(),
+        'specialties': [specialtyCtrl.text.trim()],
+        'experience': experience,
+        'type': practitionerType.value,
+        'address': addressCtrl.text.trim(),
+        'coordinates': coordinates.value,
+        'services': servicesIds,
+        'equipment': equipmentIds,
       };
-      await write(AppSession.token, DateTime.now().toIso8601String());
-      await write(AppSession.userData, request);
-      toaster.success("Congratulations, Registration successfully completed.");
+      await authService.register(request);
+    } finally {
+      nameCtrl.clear();
       emailCtrl.clear();
       passwordCtrl.clear();
       mobileCtrl.clear();
       clinicCtrl.clear();
       specialtyCtrl.clear();
+      experienceCtrl.clear();
+      practitionerType.value = 'Regular';
       selectedServices.clear();
       selectedEquipment.clear();
-      Get.toNamed(AppRouteNames.dashboard);
-    } finally {
       isLoading.value = false;
     }
   }
