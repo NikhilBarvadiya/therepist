@@ -9,6 +9,7 @@ class AppointmentsCtrl extends GetxController {
   final RxList<AppointmentModel> filteredAppointments = <AppointmentModel>[].obs;
   final RxString selectedStatus = ''.obs, searchQuery = ''.obs;
   final RxBool isLoading = false.obs, hasMore = true.obs;
+  final RxBool isDeleteLoading = false.obs, isAcceptLoading = false.obs, isCompleteLoading = false.obs;
   final RxInt currentPage = 1.obs;
 
   @override
@@ -87,34 +88,43 @@ class AppointmentsCtrl extends GetxController {
 
   Future<void> acceptAppointment(String appointmentId) async {
     try {
+      isAcceptLoading.value = true;
       final response = await _authService.requestsAccept(appointmentId: appointmentId);
       if (response != null) {
         _updateAppointmentStatus(appointmentId, 'accepted');
       }
     } catch (err) {
       toaster.error('Error accepting appointment: ${err.toString()}');
+    } finally {
+      isAcceptLoading.value = false;
     }
   }
 
   Future<void> cancelAppointment(String appointmentId) async {
     try {
+      isDeleteLoading.value = true;
       final response = await _authService.requestsCancel(appointmentId: appointmentId);
       if (response != null) {
         _updateAppointmentStatus(appointmentId, 'cancelled');
       }
     } catch (err) {
       toaster.error('Error accepting appointment: ${err.toString()}');
+    } finally {
+      isDeleteLoading.value = false;
     }
   }
 
   Future<void> completeAppointment(String appointmentId) async {
     try {
+      isCompleteLoading.value = true;
       final response = await _authService.completeAppointment(appointmentId: appointmentId);
       if (response != null) {
         _updateAppointmentStatus(appointmentId, 'cancelled');
       }
     } catch (err) {
       toaster.error('Error accepting appointment: ${err.toString()}');
+    } finally {
+      isCompleteLoading.value = false;
     }
   }
 

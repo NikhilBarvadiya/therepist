@@ -23,19 +23,74 @@ class Home extends StatelessWidget {
           backgroundColor: Colors.grey[50],
           body: RefreshIndicator(
             onRefresh: () => ctrl.loadAppointments(),
-            child: CustomScrollView(
-              slivers: [
-                _buildAppBar(ctrl),
-                _buildBannerSection(ctrl),
-                const SliverToBoxAdapter(child: SizedBox(height: 20)),
-                _buildPendingRequestsSection(ctrl),
-                _buildTodayAppointmentsSection(ctrl),
-                const SliverToBoxAdapter(child: SizedBox(height: 20)),
+            child: Stack(
+              children: [
+                CustomScrollView(
+                  slivers: [
+                    _buildAppBar(ctrl),
+                    _buildBannerSection(ctrl),
+                    const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                    _buildPendingRequestsSection(ctrl),
+                    _buildTodayAppointmentsSection(ctrl),
+                    const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                  ],
+                ),
+                Obx(() {
+                  if (ctrl.isAcceptLoading.value || ctrl.isDeleteLoading.value) {
+                    return _buildFullScreenLoading(
+                      ctrl.isAcceptLoading.value ? 'Accepting Request...' : 'Declining Request...',
+                      ctrl.isAcceptLoading.value ? Icons.check_circle_outline : Icons.cancel_outlined,
+                    );
+                  }
+                  return const SizedBox.shrink();
+                }),
               ],
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildFullScreenLoading(String message, IconData icon) {
+    return Container(
+      color: Colors.black.withOpacity(0.7),
+      child: Center(
+        child: Container(
+          width: 200,
+          height: 200,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(color: decoration.colorScheme.primary.withOpacity(0.1), shape: BoxShape.circle),
+                    child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(decoration.colorScheme.primary), strokeWidth: 3),
+                  ),
+                  Icon(icon, size: 30, color: decoration.colorScheme.primary),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Text(
+                message,
+                style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text('Please wait...', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600])),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

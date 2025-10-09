@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:therepist/models/appointment_model.dart';
 import 'package:therepist/utils/decoration.dart';
 import 'package:therepist/utils/helper.dart';
@@ -60,15 +61,74 @@ class _AppointmentsState extends State<Appointments> {
             child: RefreshIndicator(
               color: decoration.colorScheme.primary,
               onRefresh: ctrl.refreshAppointments,
-              child: CustomScrollView(
-                controller: scrollController,
-                physics: const AlwaysScrollableScrollPhysics(),
-                slivers: [_buildAppBar(ctrl), _buildSearchBar(ctrl), _buildFilterChips(ctrl), _buildAppointmentsList(ctrl)],
+              child: Stack(
+                children: [
+                  CustomScrollView(
+                    controller: scrollController,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    slivers: [_buildAppBar(ctrl), _buildSearchBar(ctrl), _buildFilterChips(ctrl), _buildAppointmentsList(ctrl)],
+                  ),
+                  Obx(() {
+                    if (ctrl.isAcceptLoading.value || ctrl.isDeleteLoading.value || ctrl.isCompleteLoading.value) {
+                      return _buildFullScreenLoading(
+                        ctrl.isAcceptLoading.value
+                            ? 'Accepting Request...'
+                            : ctrl.isCompleteLoading.value
+                            ? 'Completing Request...'
+                            : 'Declining Request...',
+                        ctrl.isAcceptLoading.value || ctrl.isCompleteLoading.value ? Icons.check_circle_outline : Icons.cancel_outlined,
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  }),
+                ],
               ),
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildFullScreenLoading(String message, IconData icon) {
+    return Container(
+      color: Colors.black.withOpacity(0.7),
+      child: Center(
+        child: Container(
+          width: 200,
+          height: 200,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(color: decoration.colorScheme.primary.withOpacity(0.1), shape: BoxShape.circle),
+                    child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(decoration.colorScheme.primary), strokeWidth: 3),
+                  ),
+                  Icon(icon, size: 30, color: decoration.colorScheme.primary),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Text(
+                message,
+                style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text('Please wait...', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600])),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -177,6 +237,139 @@ class _AppointmentsState extends State<Appointments> {
     );
   }
 
+  Widget _buildAppointmentsList(AppointmentsCtrl ctrl) {
+    return Obx(() {
+      if (ctrl.isLoading.value && ctrl.appointments.isEmpty) {
+        return _buildAppointmentsShimmer();
+      } else if (ctrl.filteredAppointments.isEmpty) {
+        return SliverFillRemaining(child: _buildEmptyState(ctrl));
+      } else {
+        return SliverPadding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate((context, index) {
+              if (index == ctrl.filteredAppointments.length) {
+                return ctrl.hasMore.value ? _buildLoadingItem() : const SizedBox(height: 20);
+              }
+              final appointment = ctrl.filteredAppointments[index];
+              return Padding(padding: const EdgeInsets.only(bottom: 12), child: _buildAppointmentCard(appointment, ctrl));
+            }, childCount: ctrl.filteredAppointments.length + 1),
+          ),
+        );
+      }
+    });
+  }
+
+  Widget _buildAppointmentsShimmer() {
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate((context, index) {
+          return Padding(padding: const EdgeInsets.only(bottom: 12), child: _buildAppointmentCardShimmer());
+        }, childCount: 6),
+      ),
+    );
+  }
+
+  Widget _buildAppointmentCardShimmer() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey.shade200,
+      highlightColor: Colors.grey.shade50,
+      child: Container(
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 150,
+                          height: 17,
+                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
+                        ),
+                        const SizedBox(height: 6),
+                        Container(
+                          width: 100,
+                          height: 13,
+                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Container(
+                        width: 80,
+                        height: 24,
+                        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        width: 24,
+                        height: 24,
+                        decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 16,
+                      height: 16,
+                      decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      width: 80,
+                      height: 13,
+                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
+                    ),
+                    const SizedBox(width: 16),
+                    Container(
+                      width: 16,
+                      height: 16,
+                      decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      width: 60,
+                      height: 13,
+                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
+                    ),
+                    const Spacer(),
+                    Container(
+                      width: 70,
+                      height: 11,
+                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildFilterChip(String label, IconData icon, bool isSelected, AppointmentsCtrl ctrl) {
     return FilterChip(
       avatar: Icon(icon, size: 16, color: isSelected ? Colors.white : Colors.grey[600]),
@@ -199,29 +392,6 @@ class _AppointmentsState extends State<Appointments> {
       ),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
     );
-  }
-
-  Widget _buildAppointmentsList(AppointmentsCtrl ctrl) {
-    return Obx(() {
-      if (ctrl.isLoading.value && ctrl.appointments.isEmpty) {
-        return SliverFillRemaining(child: _buildLoadingState());
-      } else if (ctrl.filteredAppointments.isEmpty) {
-        return SliverFillRemaining(child: _buildEmptyState(ctrl));
-      } else {
-        return SliverPadding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-          sliver: SliverList(
-            delegate: SliverChildBuilderDelegate((context, index) {
-              if (index == ctrl.filteredAppointments.length) {
-                return ctrl.hasMore.value ? _buildLoadingItem() : const SizedBox(height: 20);
-              }
-              final appointment = ctrl.filteredAppointments[index];
-              return Padding(padding: const EdgeInsets.only(bottom: 12), child: _buildAppointmentCard(appointment, ctrl));
-            }, childCount: ctrl.filteredAppointments.length + 1),
-          ),
-        );
-      }
-    });
   }
 
   Widget _buildAppointmentCard(AppointmentModel appointment, AppointmentsCtrl ctrl) {
@@ -582,19 +752,6 @@ class _AppointmentsState extends State<Appointments> {
         ),
       ),
       barrierDismissible: false,
-    );
-  }
-
-  Widget _buildLoadingState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(color: decoration.colorScheme.primary, strokeWidth: 3),
-          const SizedBox(height: 20),
-          Text('Loading appointments...', style: GoogleFonts.poppins(fontSize: 15, color: Colors.grey[600])),
-        ],
-      ),
     );
   }
 
