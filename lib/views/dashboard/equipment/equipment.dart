@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:therepist/utils/decoration.dart';
 import 'package:therepist/views/dashboard/equipment/equipment_ctrl.dart';
 import '../../../models/service_model.dart';
@@ -75,7 +76,7 @@ class Equipment extends StatelessWidget {
                         controller: searchController,
                         style: GoogleFonts.poppins(fontSize: 15),
                         decoration: InputDecoration(
-                          hintText: 'Search by name, service...',
+                          hintText: 'Search equipment by name...',
                           hintStyle: GoogleFonts.poppins(color: Colors.grey[400], fontSize: 15),
                           prefixIcon: Icon(Icons.search_rounded, color: Colors.grey[500], size: 22),
                           border: InputBorder.none,
@@ -97,7 +98,7 @@ class Equipment extends StatelessWidget {
                 ),
                 Obx(() {
                   if (ctrl.isLoading.value && ctrl.filteredEquipment.isEmpty) {
-                    return SliverFillRemaining(child: _buildLoadingState());
+                    return _buildEquipmentShimmer();
                   }
                   if (ctrl.filteredEquipment.isEmpty && !ctrl.isLoading.value) {
                     return SliverFillRemaining(child: _buildEmptyState(ctrl));
@@ -109,8 +110,8 @@ class Equipment extends StatelessWidget {
                         if (index == ctrl.filteredEquipment.length) {
                           return _buildLoadMoreIndicator(ctrl);
                         }
-                        final service = ctrl.filteredEquipment[index];
-                        return _buildEquipmentCard(context, service, ctrl);
+                        final equipment = ctrl.filteredEquipment[index];
+                        return _buildEquipmentCard(context, equipment, ctrl);
                       }, childCount: ctrl.filteredEquipment.length + (ctrl.hasMore.value ? 1 : 0)),
                     ),
                   );
@@ -123,7 +124,71 @@ class Equipment extends StatelessWidget {
     );
   }
 
-  Widget _buildEquipmentCard(BuildContext context, ServiceModel service, EquipmentCtrl ctrl) {
+  Widget _buildEquipmentShimmer() {
+    return SliverPadding(
+      padding: const EdgeInsets.all(20),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate((context, index) {
+          return Shimmer.fromColors(
+            baseColor: Colors.grey.shade200,
+            highlightColor: Colors.grey.shade50,
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 15),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 150,
+                                height: 16,
+                                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
+                              ),
+                              const SizedBox(height: 8),
+                              Container(
+                                width: 100,
+                                height: 20,
+                                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6)),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          width: 70,
+                          height: 24,
+                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      height: 40,
+                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }, childCount: 6),
+      ),
+    );
+  }
+
+  Widget _buildEquipmentCard(BuildContext context, ServiceModel equipment, EquipmentCtrl ctrl) {
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
       decoration: BoxDecoration(
@@ -143,8 +208,8 @@ class Equipment extends StatelessWidget {
                 children: [
                   Container(
                     padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(color: decoration.colorScheme.primary.withOpacity(0.15), borderRadius: BorderRadius.circular(12)),
-                    child: Icon(service.icon ?? Icons.miscellaneous_services, color: decoration.colorScheme.primary, size: 24),
+                    decoration: BoxDecoration(color: _getEquipmentColor(equipment.name).withOpacity(0.15), borderRadius: BorderRadius.circular(12)),
+                    child: Icon(_getEquipmentIcon(equipment.name), color: _getEquipmentColor(equipment.name), size: 24),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -152,17 +217,17 @@ class Equipment extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          service.name,
+                          equipment.name,
                           style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 4),
-                        _buildRateDisplay(service),
+                        _buildEquipmentSpecs(equipment),
                       ],
                     ),
                   ),
-                  _buildStatusBadge(service.isActive),
+                  _buildStatusBadge(equipment.isActive),
                 ],
               ),
               const SizedBox(height: 12),
@@ -171,20 +236,23 @@ class Equipment extends StatelessWidget {
                 child: Row(
                   children: [
                     Expanded(
-                      child: Text(
-                        service.description ?? 'Professional service with customized treatment plans.',
-                        style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600], height: 1.4),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ).paddingOnly(left: 12),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        child: Text(
+                          equipment.description ?? 'Professional equipment for therapeutic use.',
+                          style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600], height: 1.4),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     ),
                     Transform.scale(
                       scale: 0.8,
                       child: Switch(
-                        value: service.isActive,
+                        value: equipment.isActive,
                         activeColor: decoration.colorScheme.primary,
                         inactiveTrackColor: Colors.grey[400],
-                        onChanged: (value) => ctrl.toggleServiceStatus(service.id, value),
+                        onChanged: (value) => ctrl.toggleServiceStatus(equipment.id, value),
                       ),
                     ),
                   ],
@@ -197,19 +265,18 @@ class Equipment extends StatelessWidget {
     );
   }
 
-  Widget _buildRateDisplay(ServiceModel service) {
-    final charge = service.charge ?? 0;
-    final lowCharge = service.lowCharge ?? 0;
-    final highCharge = service.highCharge ?? 0;
+  Widget _buildEquipmentSpecs(ServiceModel equipment) {
+    final charge = equipment.charge ?? 0;
+    final lowCharge = equipment.lowCharge ?? 0;
+    final highCharge = equipment.highCharge ?? 0;
     String rateText;
     if (charge > 0) {
-      rateText = '₹$charge/session';
+      rateText = '₹$charge/day';
     } else if (lowCharge > 0 && highCharge > 0) {
-      rateText = '₹$lowCharge - ₹$highCharge';
+      rateText = '₹$lowCharge - ₹$highCharge/day';
     } else {
-      rateText = 'Contact for pricing';
+      rateText = 'Contact for rental';
     }
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(color: Colors.blue.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
@@ -242,25 +309,11 @@ class Equipment extends StatelessWidget {
     );
   }
 
-  Widget _buildLoadingState() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const CircularProgressIndicator(color: Color(0xFF6C63FF)),
-        const SizedBox(height: 20),
-        Text(
-          'Loading Services...',
-          style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey[600]),
-        ),
-      ],
-    );
-  }
-
   Widget _buildEmptyState(EquipmentCtrl ctrl) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(Icons.medical_services_outlined, size: 80, color: Colors.grey[300]),
+        Icon(Icons.fitness_center_outlined, size: 80, color: Colors.grey[300]),
         const SizedBox(height: 20),
         Text(
           'No Equipment Found',
@@ -270,7 +323,7 @@ class Equipment extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 40),
           child: Text(
-            ctrl.searchQuery.value.isEmpty ? 'No equipment available at the moment. Check back later.' : 'No equipment found for "${ctrl.searchQuery.value}". Try different keywords.',
+            ctrl.searchQuery.value.isEmpty ? 'No equipment available for rental at the moment. Check back later.' : 'No equipment found for "${ctrl.searchQuery.value}". Try different keywords.',
             style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[500]),
             textAlign: TextAlign.center,
           ),
@@ -306,5 +359,37 @@ class Equipment extends StatelessWidget {
       }
       return const SizedBox();
     });
+  }
+
+  Color _getEquipmentColor(String equipmentName) {
+    final name = equipmentName.toLowerCase();
+    if (name.contains('treadmill') || name.contains('walker')) {
+      return Colors.blue;
+    } else if (name.contains('therapist') || name.contains('massage')) {
+      return Colors.green;
+    } else if (name.contains('wheelchair') || name.contains('crutch')) {
+      return Colors.orange;
+    } else if (name.contains('exercise') || name.contains('therapy')) {
+      return Colors.purple;
+    } else {
+      return decoration.colorScheme.primary;
+    }
+  }
+
+  IconData _getEquipmentIcon(String equipmentName) {
+    final name = equipmentName.toLowerCase();
+    if (name.contains('treadmill') || name.contains('exercise')) {
+      return Icons.directions_run;
+    } else if (name.contains('wheelchair')) {
+      return Icons.accessible;
+    } else if (name.contains('crutch') || name.contains('walker')) {
+      return Icons.assist_walker;
+    } else if (name.contains('massage')) {
+      return Icons.spa;
+    } else if (name.contains('therapist')) {
+      return Icons.medical_services;
+    } else {
+      return Icons.fitness_center;
+    }
   }
 }

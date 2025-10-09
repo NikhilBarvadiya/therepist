@@ -13,7 +13,7 @@ class HomeCtrl extends GetxController {
   final RxInt todayAppointmentsCount = 0.obs;
   final RxInt pendingRequestsCount = 0.obs;
 
-  final RxBool isLoading = false.obs;
+  final RxBool isLoading = false.obs, isDeleteLoading = false.obs, isAcceptLoading = false.obs;
   final RxString userName = ''.obs;
 
   @override
@@ -74,6 +74,7 @@ class HomeCtrl extends GetxController {
 
   Future<void> acceptRequest(String requestId) async {
     try {
+      isAcceptLoading.value = true;
       final response = await _authService.requestsAccept(appointmentId: requestId);
       if (response != null) {
         pendingAppointments.removeWhere((request) => request.id == requestId);
@@ -83,11 +84,14 @@ class HomeCtrl extends GetxController {
       }
     } catch (e) {
       toaster.error('Error accepting request: ${e.toString()}');
+    } finally {
+      isAcceptLoading.value = false;
     }
   }
 
   Future<void> declineRequest(String requestId) async {
     try {
+      isDeleteLoading.value = true;
       final response = await _authService.requestsCancel(appointmentId: requestId);
       if (response != null) {
         pendingAppointments.removeWhere((request) => request.id == requestId);
@@ -96,12 +100,8 @@ class HomeCtrl extends GetxController {
       }
     } catch (e) {
       toaster.error('Error declining request: ${e.toString()}');
+    } finally {
+      isDeleteLoading.value = false;
     }
   }
-
-  Future<void> refreshHomeData() async {
-    await loadHomeData();
-  }
-
-  List<AppointmentModel> get filteredAppointments => todayAppointments;
 }

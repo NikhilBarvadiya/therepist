@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:therepist/utils/decoration.dart';
 import 'package:therepist/views/dashboard/services/services_ctrl.dart';
 import '../../../models/service_model.dart';
@@ -43,7 +44,7 @@ class Services extends StatelessWidget {
                         'Services',
                         style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
                       ),
-                      Obx(() => Text('${ctrl.filteredServices.length} services available', style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]))),
+                      Text('${ctrl.filteredServices.length} services available', style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600])),
                     ],
                   ),
                   actions: [
@@ -65,39 +66,41 @@ class Services extends StatelessWidget {
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 2))],
-                      ),
-                      child: TextField(
-                        controller: searchController,
-                        style: GoogleFonts.poppins(fontSize: 15),
-                        decoration: InputDecoration(
-                          hintText: 'Search by name, service...',
-                          hintStyle: GoogleFonts.poppins(color: Colors.grey[400], fontSize: 15),
-                          prefixIcon: Icon(Icons.search_rounded, color: Colors.grey[500], size: 22),
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                          suffixIcon: searchController.text.isNotEmpty
-                              ? IconButton(
-                                  icon: Icon(Icons.clear_rounded, color: Colors.grey[500], size: 20),
-                                  onPressed: () {
-                                    searchController.clear();
-                                    ctrl.searchServices('');
-                                  },
-                                )
-                              : const SizedBox.shrink(),
+                    child: Obx(() {
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 2))],
                         ),
-                        onChanged: (value) => ctrl.searchServices(value),
-                      ),
-                    ),
+                        child: TextField(
+                          controller: searchController,
+                          style: GoogleFonts.poppins(fontSize: 15),
+                          decoration: InputDecoration(
+                            hintText: 'Search by name, service...',
+                            hintStyle: GoogleFonts.poppins(color: Colors.grey[400], fontSize: 15),
+                            prefixIcon: Icon(Icons.search_rounded, color: Colors.grey[500], size: 22),
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                            suffixIcon: searchController.text.isNotEmpty
+                                ? IconButton(
+                                    icon: Icon(Icons.clear_rounded, color: Colors.grey[500], size: 20),
+                                    onPressed: () {
+                                      searchController.clear();
+                                      ctrl.searchServices('');
+                                    },
+                                  )
+                                : const SizedBox.shrink(),
+                          ),
+                          onChanged: (value) => ctrl.searchServices(value),
+                        ),
+                      );
+                    }),
                   ),
                 ),
                 Obx(() {
                   if (ctrl.isLoading.value && ctrl.filteredServices.isEmpty) {
-                    return SliverFillRemaining(child: _buildLoadingState());
+                    return _buildServicesShimmer();
                   }
                   if (ctrl.filteredServices.isEmpty && !ctrl.isLoading.value) {
                     return SliverFillRemaining(child: _buildEmptyState(ctrl));
@@ -120,6 +123,70 @@ class Services extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildServicesShimmer() {
+    return SliverPadding(
+      padding: const EdgeInsets.all(20),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate((context, index) {
+          return Shimmer.fromColors(
+            baseColor: Colors.grey.shade200,
+            highlightColor: Colors.grey.shade50,
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 15),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 150,
+                                height: 16,
+                                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
+                              ),
+                              const SizedBox(height: 8),
+                              Container(
+                                width: 80,
+                                height: 20,
+                                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6)),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          width: 60,
+                          height: 24,
+                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      height: 40,
+                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }, childCount: 6),
+      ),
     );
   }
 
@@ -239,20 +306,6 @@ class Services extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildLoadingState() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const CircularProgressIndicator(color: Color(0xFF6C63FF)),
-        const SizedBox(height: 20),
-        Text(
-          'Loading Services...',
-          style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey[600]),
-        ),
-      ],
     );
   }
 

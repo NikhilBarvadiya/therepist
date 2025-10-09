@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:therepist/models/appointment_model.dart';
 import 'package:therepist/utils/decoration.dart';
 import 'package:therepist/utils/helper.dart';
@@ -21,11 +22,11 @@ class Home extends StatelessWidget {
         return Scaffold(
           backgroundColor: Colors.grey[50],
           body: RefreshIndicator(
-            onRefresh: () => ctrl.refreshHomeData(),
+            onRefresh: () => ctrl.loadAppointments(),
             child: CustomScrollView(
               slivers: [
                 _buildAppBar(ctrl),
-                _buildBannerSection(),
+                _buildBannerSection(ctrl),
                 const SliverToBoxAdapter(child: SizedBox(height: 20)),
                 _buildPendingRequestsSection(ctrl),
                 _buildTodayAppointmentsSection(ctrl),
@@ -52,17 +53,19 @@ class Home extends StatelessWidget {
         background: Container(color: Colors.white),
         titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
         title: Obx(
-          () => Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Hello, Dr.', style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600])),
-              Text(
-                ctrl.userName.value,
-                style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
-              ),
-            ],
-          ),
+          () => ctrl.isLoading.value
+              ? _buildAppBarShimmer()
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Hello, Dr.', style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600])),
+                    Text(
+                      ctrl.userName.value,
+                      style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
+                    ),
+                  ],
+                ),
         ),
       ),
       actions: [
@@ -81,81 +84,86 @@ class Home extends StatelessWidget {
     );
   }
 
-  Widget _buildBannerSection() {
-    final banners = [
-      {
-        'image': 'https://images.pexels.com/photos/3825529/pexels-photo-3825529.jpeg',
-        'title': 'Welcome to Our Clinic',
-        'subtitle': 'Where care meets expertise — your recovery starts here.',
-        'color': Colors.blue[700]!,
-      },
-      {
-        'image': 'https://images.pexels.com/photos/4506107/pexels-photo-4506107.jpeg',
-        'title': 'Special Offer',
-        'subtitle': 'Enjoy 20% off your first physiotherapy session!',
-        'color': Colors.green[700]!,
-      },
-    ];
+  Widget _buildBannerSection(HomeCtrl ctrl) {
     return SliverToBoxAdapter(
-      child: SizedBox(
-        height: 160,
-        child: PageView.builder(
-          itemCount: banners.length,
-          padEnds: false,
-          controller: PageController(viewportFraction: 0.85),
-          itemBuilder: (context, index) {
-            final banner = banners[index];
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Card(
-                elevation: 4,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      CachedNetworkImage(
-                        imageUrl: banner['image'].toString(),
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
-                          color: banner['color'] as Color,
-                          child: const Center(child: CircularProgressIndicator(color: Colors.white)),
+      child: Obx(() {
+        if (ctrl.isLoading.value) {
+          return _buildBannerShimmer();
+        }
+        final banners = [
+          {
+            'image': 'https://images.pexels.com/photos/3825529/pexels-photo-3825529.jpeg',
+            'title': 'Welcome to Our Clinic',
+            'subtitle': 'Where care meets expertise — your recovery starts here.',
+            'color': Colors.blue[700]!,
+          },
+          {
+            'image': 'https://images.pexels.com/photos/4506107/pexels-photo-4506107.jpeg',
+            'title': 'Special Offer',
+            'subtitle': 'Enjoy 20% off your first physiotherapy session!',
+            'color': Colors.green[700]!,
+          },
+        ];
+        return SizedBox(
+          height: 160,
+          child: PageView.builder(
+            itemCount: banners.length,
+            padEnds: false,
+            controller: PageController(viewportFraction: 0.85),
+            itemBuilder: (context, index) {
+              final banner = banners[index];
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        CachedNetworkImage(
+                          imageUrl: banner['image'].toString(),
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(
+                            color: banner['color'] as Color,
+                            child: const Center(child: CircularProgressIndicator(color: Colors.white)),
+                          ),
+                          errorWidget: (context, url, error) => Container(
+                            color: banner['color'] as Color,
+                            child: const Icon(Icons.error, color: Colors.white, size: 40),
+                          ),
                         ),
-                        errorWidget: (context, url, error) => Container(
-                          color: banner['color'] as Color,
-                          child: const Icon(Icons.error, color: Colors.white, size: 40),
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(colors: [Colors.black.withOpacity(0.6), Colors.transparent], begin: Alignment.bottomCenter, end: Alignment.topCenter),
+                          ),
                         ),
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(colors: [Colors.black.withOpacity(0.6), Colors.transparent], begin: Alignment.bottomCenter, end: Alignment.topCenter),
+                        Positioned(
+                          bottom: 20,
+                          left: 20,
+                          right: 20,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                banner['title'].toString(),
+                                style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(banner['subtitle'].toString(), style: GoogleFonts.poppins(fontSize: 14, color: Colors.white.withOpacity(0.9))),
+                            ],
+                          ),
                         ),
-                      ),
-                      Positioned(
-                        bottom: 20,
-                        left: 20,
-                        right: 20,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              banner['title'].toString(),
-                              style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(banner['subtitle'].toString(), style: GoogleFonts.poppins(fontSize: 14, color: Colors.white.withOpacity(0.9))),
-                          ],
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            );
-          },
-        ),
-      ),
+              );
+            },
+          ),
+        );
+      }),
     );
   }
 
@@ -175,17 +183,19 @@ class Home extends StatelessWidget {
                   ),
                 ),
                 Obx(
-                  () => Text(
-                    '${ctrl.pendingRequestsCount.value}',
-                    style: GoogleFonts.poppins(fontSize: 16, color: Colors.grey[600], fontWeight: FontWeight.w500),
-                  ),
+                  () => ctrl.isLoading.value
+                      ? _buildCountShimmer()
+                      : Text(
+                          '${ctrl.pendingRequestsCount.value}',
+                          style: GoogleFonts.poppins(fontSize: 16, color: Colors.grey[600], fontWeight: FontWeight.w500),
+                        ),
                 ),
               ],
             ),
             const SizedBox(height: 16),
             Obx(() {
               if (ctrl.isLoading.value) {
-                return _buildLoadingState();
+                return _buildPendingRequestsShimmer();
               }
               return ctrl.pendingAppointments.isEmpty
                   ? _buildEmptyState(icon: Icons.pending_actions_outlined, title: 'No Pending Requests', subtitle: 'You\'re all caught up!')
@@ -228,10 +238,12 @@ class Home extends StatelessWidget {
                   onPressed: () => Get.to(() => const Appointments(), transition: Transition.rightToLeft),
                   style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
                   child: Obx(
-                    () => Text(
-                      'View All (${ctrl.todayAppointmentsCount.value})',
-                      style: GoogleFonts.poppins(color: decoration.colorScheme.primary, fontWeight: FontWeight.w600, fontSize: 14),
-                    ),
+                    () => ctrl.isLoading.value
+                        ? _buildCountShimmer()
+                        : Text(
+                            'View All (${ctrl.todayAppointmentsCount.value})',
+                            style: GoogleFonts.poppins(color: decoration.colorScheme.primary, fontWeight: FontWeight.w600, fontSize: 14),
+                          ),
                   ),
                 ),
               ],
@@ -239,7 +251,7 @@ class Home extends StatelessWidget {
             const SizedBox(height: 16),
             Obx(() {
               if (ctrl.isLoading.value) {
-                return _buildLoadingState();
+                return _buildTodayAppointmentsShimmer();
               }
               return ctrl.todayAppointments.isEmpty
                   ? _buildEmptyState(icon: Icons.calendar_today_outlined, title: 'No Appointments', subtitle: 'No appointments scheduled for today')
@@ -258,6 +270,245 @@ class Home extends StatelessWidget {
             }),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildAppBarShimmer() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey.shade200,
+      highlightColor: Colors.grey.shade50,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 100,
+            height: 14,
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            width: 150,
+            height: 20,
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBannerShimmer() {
+    return SizedBox(
+      height: 160,
+      child: PageView.builder(
+        itemCount: 2,
+        padEnds: false,
+        controller: PageController(viewportFraction: 0.85),
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: Shimmer.fromColors(
+              baseColor: Colors.grey.shade200,
+              highlightColor: Colors.grey.shade50,
+              child: Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                child: Container(
+                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildPendingRequestsShimmer() {
+    return SizedBox(
+      height: 210,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: 3,
+        separatorBuilder: (context, index) => const SizedBox(width: 12),
+        itemBuilder: (context, index) {
+          return Shimmer.fromColors(
+            baseColor: Colors.grey.shade200,
+            highlightColor: Colors.grey.shade50,
+            child: Container(
+              width: 280,
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 45,
+                          height: 45,
+                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 120,
+                                height: 16,
+                                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
+                              ),
+                              const SizedBox(height: 6),
+                              Container(
+                                width: 80,
+                                height: 12,
+                                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    ...List.generate(
+                      3,
+                      (index) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 16,
+                              height: 16,
+                              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              width: 180,
+                              height: 12,
+                              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            height: 36,
+                            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Container(
+                            height: 36,
+                            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildTodayAppointmentsShimmer() {
+    return SizedBox(
+      height: 160,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: 3,
+        separatorBuilder: (context, index) => const SizedBox(width: 12),
+        itemBuilder: (context, index) {
+          return Shimmer.fromColors(
+            baseColor: Colors.grey.shade200,
+            highlightColor: Colors.grey.shade50,
+            child: Container(
+              width: 280,
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 45,
+                          height: 45,
+                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 120,
+                                height: 16,
+                                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
+                              ),
+                              const SizedBox(height: 6),
+                              Container(
+                                width: 80,
+                                height: 12,
+                                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    ...List.generate(
+                      3,
+                      (index) => Padding(
+                        padding: const EdgeInsets.only(bottom: 6),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 16,
+                              height: 16,
+                              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              width: 150,
+                              height: 12,
+                              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildCountShimmer() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey.shade200,
+      highlightColor: Colors.grey.shade50,
+      child: Container(
+        width: 40,
+        height: 16,
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
       ),
     );
   }
@@ -465,19 +716,6 @@ class Home extends StatelessWidget {
           Text(subtitle, style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[500])),
         ],
       ),
-    );
-  }
-
-  Widget _buildLoadingState() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 40),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2))],
-      ),
-      child: const Center(child: CircularProgressIndicator()),
     );
   }
 

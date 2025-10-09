@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:therepist/utils/decoration.dart';
 import 'package:therepist/views/dashboard/profile/profile_ctrl.dart';
 import 'package:therepist/views/dashboard/profile/settings.dart';
@@ -43,11 +44,12 @@ class _ProfileState extends State<Profile> {
                                 child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: decoration.colorScheme.primary)),
                               )
                             : IconButton(
-                                icon: Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(color: decoration.colorScheme.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-                                  child: Icon(Icons.save, color: decoration.colorScheme.primary, size: 20),
+                                style: ButtonStyle(
+                                  shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                                  padding: WidgetStatePropertyAll(const EdgeInsets.all(8)),
+                                  backgroundColor: WidgetStatePropertyAll(Colors.grey[100]),
                                 ),
+                                icon: Icon(Icons.save, color: decoration.colorScheme.primary, size: 20),
                                 onPressed: ctrl.saveProfile,
                               ),
                       ),
@@ -79,18 +81,7 @@ class _ProfileState extends State<Profile> {
                 ),
                 Obx(() {
                   if (ctrl.isLoading.value) {
-                    return SliverFillRemaining(
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            CircularProgressIndicator(color: decoration.colorScheme.primary),
-                            const SizedBox(height: 16),
-                            Text('Loading Profile...', style: GoogleFonts.poppins(fontSize: 16, color: Colors.grey[600])),
-                          ],
-                        ),
-                      ),
-                    );
+                    return _buildProfileShimmer();
                   }
                   return SliverToBoxAdapter(
                     child: Padding(
@@ -118,6 +109,224 @@ class _ProfileState extends State<Profile> {
     );
   }
 
+  Widget _buildProfileShimmer() {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            _buildProfileHeaderShimmer(),
+            const SizedBox(height: 24),
+            _buildLocationStatusShimmer(),
+            _buildSectionShimmer('Personal Information'),
+            const SizedBox(height: 24),
+            _buildSectionShimmer('Clinic Information'),
+            const SizedBox(height: 24),
+            _buildStatsShimmer(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileHeaderShimmer() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey.shade200,
+      highlightColor: Colors.grey.shade50,
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+        child: Row(
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.white),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 150,
+                    height: 20,
+                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: 120,
+                    height: 14,
+                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: 100,
+                    height: 12,
+                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLocationStatusShimmer() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey.shade200,
+      highlightColor: Colors.grey.shade50,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+        child: Row(
+          children: [
+            Container(
+              width: 20,
+              height: 20,
+              decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.white),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 100,
+                    height: 12,
+                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
+                  ),
+                  const SizedBox(height: 6),
+                  Container(
+                    width: 180,
+                    height: 10,
+                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              width: 80,
+              height: 30,
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionShimmer(String title) {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey.shade200,
+      highlightColor: Colors.grey.shade50,
+      child: Container(
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 150,
+                height: 18,
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
+              ),
+              const SizedBox(height: 16),
+              ...List.generate(
+                3,
+                (index) => Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 80,
+                              height: 12,
+                              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
+                            ),
+                            const SizedBox(height: 6),
+                            Container(
+                              width: 120,
+                              height: 14,
+                              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatsShimmer() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey.shade200,
+      highlightColor: Colors.grey.shade50,
+      child: Container(
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 120,
+                height: 18,
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: List.generate(
+                  3,
+                  (index) => Column(
+                    children: [
+                      Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        width: 30,
+                        height: 14,
+                        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
+                      ),
+                      const SizedBox(height: 4),
+                      Container(
+                        width: 40,
+                        height: 10,
+                        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildProfileHeader(ProfileCtrl ctrl) {
     return Container(
       padding: const EdgeInsets.all(24),
@@ -132,54 +341,55 @@ class _ProfileState extends State<Profile> {
             onTap: !ctrl.isEditMode ? null : () => ctrl.pickAvatar(),
             child: Stack(
               children: [
-                Obx(() {
-                  if (ctrl.avatar.value != null) {
-                    return Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
-                        image: DecorationImage(image: FileImage(ctrl.avatar.value!), fit: BoxFit.cover),
-                      ),
-                    );
-                  }
-                  if (ctrl.user.value.avatar.isNotEmpty) {
-                    return Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
-                        image: DecorationImage(image: NetworkImage(ctrl.user.value.avatar), fit: BoxFit.cover, onError: (exception, stackTrace) {}),
-                      ),
-                    );
-                  }
-                  return Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
-                    ),
-                    child: Icon(Icons.person, size: 40, color: Colors.white),
-                  );
-                }),
+                Container(
+                  width: 90,
+                  height: 90,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white.withOpacity(0.4), width: 3),
+                  ),
+                  child: ClipOval(
+                    child: Obx(() {
+                      if (ctrl.avatar.value != null) {
+                        return Image.file(ctrl.avatar.value!, fit: BoxFit.cover);
+                      }
+                      if (ctrl.user.value.avatar.isNotEmpty) {
+                        return Image.network(
+                          ctrl.user.value.avatar,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              color: Colors.white.withOpacity(0.2),
+                              child: Icon(Icons.person, size: 40, color: Colors.white),
+                            );
+                          },
+                        );
+                      }
+                      return Container(
+                        color: Colors.white.withOpacity(0.2),
+                        child: Icon(Icons.person, size: 40, color: Colors.white),
+                      );
+                    }),
+                  ),
+                ),
                 if (ctrl.isEditMode)
                   Positioned(
                     bottom: 0,
                     right: 0,
                     child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                      child: Icon(Icons.camera_alt, size: 16, color: decoration.colorScheme.primary),
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 2))],
+                      ),
+                      child: Icon(Icons.camera_alt_rounded, size: 18, color: decoration.colorScheme.primary),
                     ),
                   ),
               ],
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 20),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -190,17 +400,49 @@ class _ProfileState extends State<Profile> {
                   Obx(
                     () => Text(
                       ctrl.user.value.name.isNotEmpty ? ctrl.user.value.name : 'Your Name',
-                      style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                      style: GoogleFonts.poppins(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        shadows: [Shadow(color: Colors.black.withOpacity(0.1), blurRadius: 4, offset: const Offset(0, 2))],
+                      ),
                     ),
                   ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 if (ctrl.isEditMode)
                   _buildEditTextField(ctrl.emailController, 'Email Address', isHeader: true, isEmail: true)
                 else
-                  Obx(() => Text(ctrl.user.value.email.isNotEmpty ? ctrl.user.value.email : 'your.email@example.com', style: GoogleFonts.poppins(fontSize: 12, color: Colors.white.withOpacity(0.9)))),
+                  Obx(
+                    () => Text(
+                      ctrl.user.value.email.isNotEmpty ? ctrl.user.value.email : 'your.email@example.com',
+                      style: GoogleFonts.poppins(fontSize: 13, color: Colors.white.withOpacity(0.9), fontWeight: FontWeight.w500),
+                    ),
+                  ),
                 const SizedBox(height: 8),
                 if (!ctrl.isEditMode)
-                  Obx(() => Text('${ctrl.user.value.type} • ${ctrl.user.value.experienceYears} Years Exp', style: GoogleFonts.poppins(fontSize: 12, color: Colors.white.withOpacity(0.8)))),
+                  Obx(
+                    () => Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
+                          child: Text(
+                            ctrl.user.value.type,
+                            style: GoogleFonts.poppins(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
+                          child: Text(
+                            '${ctrl.user.value.experienceYears} Years Exp',
+                            style: GoogleFonts.poppins(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
               ],
             ),
           ),
@@ -211,44 +453,53 @@ class _ProfileState extends State<Profile> {
 
   Widget _buildLocationStatus(ProfileCtrl ctrl) {
     return Obx(() {
-      // if (ctrl.user.value.location.coordinates.first != '["0.0", "0.0"]') {
-      //   return SizedBox.shrink();
-      // }
-      return Container(
-        margin: EdgeInsets.only(bottom: 24),
-        padding: const EdgeInsets.all(12),
+      final isSuccess = ctrl.locationStatus.value.contains('successfully');
+      final isError = ctrl.locationStatus.value.contains('Failed') || ctrl.locationStatus.value.contains('denied');
+      return AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        margin: const EdgeInsets.only(bottom: 24),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: ctrl.locationStatus.value.contains('successfully')
-              ? const Color(0xFFD1FAE5)
-              : ctrl.locationStatus.value.contains('Failed') || ctrl.locationStatus.value.contains('denied')
-              ? const Color(0xFFFEE2E2)
-              : const Color(0xFFFEF3C7),
-          borderRadius: BorderRadius.circular(12),
+          color: isSuccess
+              ? const Color(0xFFECFDF5)
+              : isError
+              ? const Color(0xFFFEF2F2)
+              : const Color(0xFFFFFBEB),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: ctrl.locationStatus.value.contains('successfully')
+            color: isSuccess
                 ? const Color(0xFF10B981)
-                : ctrl.locationStatus.value.contains('Failed') || ctrl.locationStatus.value.contains('denied')
+                : isError
                 ? const Color(0xFFEF4444)
                 : const Color(0xFFF59E0B),
-            width: 1,
+            width: 1.5,
           ),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
         ),
         child: Row(
           children: [
-            Icon(
-              ctrl.locationStatus.value.contains('successfully')
-                  ? Icons.check_circle_rounded
-                  : ctrl.locationStatus.value.contains('Failed') || ctrl.locationStatus.value.contains('denied')
-                  ? Icons.error_outline_rounded
-                  : Icons.location_searching_rounded,
-              color: ctrl.locationStatus.value.contains('successfully')
-                  ? const Color(0xFF10B981)
-                  : ctrl.locationStatus.value.contains('Failed') || ctrl.locationStatus.value.contains('denied')
-                  ? const Color(0xFFEF4444)
-                  : const Color(0xFFF59E0B),
-              size: 20,
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isSuccess
+                    ? const Color(0xFF10B981)
+                    : isError
+                    ? const Color(0xFFEF4444)
+                    : const Color(0xFFF59E0B),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                isSuccess
+                    ? Icons.check_rounded
+                    : isError
+                    ? Icons.error_outline_rounded
+                    : Icons.location_searching_rounded,
+                color: Colors.white,
+                size: 18,
+              ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -257,20 +508,24 @@ class _ProfileState extends State<Profile> {
                     ctrl.isGettingLocation.value ? 'Getting Location...' : 'Location Status',
                     style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF374151)),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 4),
                   Text(
                     ctrl.locationStatus.value,
-                    style: TextStyle(fontSize: 11, color: const Color(0xFF6B7280), fontWeight: ctrl.locationStatus.value.contains('successfully') ? FontWeight.w600 : FontWeight.normal),
+                    style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF6B7280), fontWeight: isSuccess ? FontWeight.w600 : FontWeight.normal),
                   ),
                 ],
               ),
             ),
             TextButton(
               onPressed: ctrl.isGettingLocation.value ? null : ctrl.retryLocation,
-              style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), minimumSize: Size.zero),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                backgroundColor: ctrl.isGettingLocation.value ? Colors.grey[300] : decoration.colorScheme.primary.withOpacity(0.1),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
               child: Text(
-                'Update Location',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: ctrl.isGettingLocation.value ? const Color(0xFFF59E0B) : Color(0xFF2563EB)),
+                'Update',
+                style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: ctrl.isGettingLocation.value ? Colors.grey[600] : decoration.colorScheme.primary),
               ),
             ),
           ],
@@ -458,11 +713,7 @@ class _ProfileState extends State<Profile> {
                 ),
                 const SizedBox(height: 6),
                 Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey[50],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey[300]!),
-                  ),
+                  decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(12)),
                   child: TextField(
                     controller: controller,
                     keyboardType: isPhone
