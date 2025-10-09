@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:therepist/utils/toaster.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Helper {
   final ImagePicker _picker = ImagePicker();
@@ -15,6 +16,15 @@ class Helper {
     } catch (err) {
       toaster.error("Error while clicking image!");
       return null;
+    }
+  }
+
+  void makePhoneCall(String phoneNumber) async {
+    final Uri launchUri = Uri(scheme: 'tel', path: phoneNumber);
+    try {
+      await launchUrl(launchUri);
+    } catch (err) {
+      toaster.warning("Invalid phone number...!");
     }
   }
 }

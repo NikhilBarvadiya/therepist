@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:path/path.dart' as path;
@@ -8,7 +9,7 @@ import 'package:therepist/utils/helper.dart';
 import 'package:therepist/utils/storage.dart';
 import 'package:therepist/utils/toaster.dart';
 import 'package:therepist/views/auth/auth_service.dart';
-import 'package:therepist/views/dashboard/dashboard_ctrl.dart';
+import 'package:therepist/views/dashboard/home/home_ctrl.dart';
 import '../../../models/user_model.dart';
 
 class ProfileCtrl extends GetxController {
@@ -28,12 +29,13 @@ class ProfileCtrl extends GetxController {
     workingDays: [],
     services: [],
     equipment: [],
-    location: LocationModel(address: '', coordinates: ['0.0', '0.0']),
+    location: LocationModel(address: '', coordinates: [0.0, 0.0]),
   ).obs;
 
-  var isLoading = false.obs, isSaving = false.obs;
+  var isLoading = false.obs, isSaving = false.obs, isGettingLocation = false.obs;
   var isCurrentPasswordVisible = false.obs, isNewPasswordVisible = false.obs, isConfirmPasswordVisible = false.obs;
   var isEditMode = false;
+  var coordinates = [0.0, 0.0].obs, locationStatus = 'Fetching location...'.obs;
 
   var avatar = Rx<File?>(null);
   var notificationRange = 8.obs;
@@ -68,6 +70,51 @@ class ProfileCtrl extends GetxController {
     loadProfile();
   }
 
+  Future<void> retryLocation() async => await _fetchCurrentLocation();
+
+  Future<void> _fetchCurrentLocation() async {
+    isGettingLocation.value = true;
+    locationStatus.value = 'Checking location permissions...';
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        locationStatus.value = 'Location services disabled';
+        toaster.warning('Please enable location services for better experience');
+        isGettingLocation.value = false;
+        return;
+      }
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        locationStatus.value = 'Requesting location permission...';
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          locationStatus.value = 'Location permission denied';
+          toaster.warning('Location permission is required for better service');
+          isGettingLocation.value = false;
+          return;
+        }
+      }
+      if (permission == LocationPermission.deniedForever) {
+        locationStatus.value = 'Location permission permanently denied';
+        toaster.warning('Please enable location permissions in app settings');
+        isGettingLocation.value = false;
+        return;
+      }
+      locationStatus.value = 'Getting your location...';
+      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high, timeLimit: const Duration(seconds: 15));
+      coordinates.value = [position.latitude, position.longitude];
+      locationStatus.value = 'Location fetched successfully!';
+      final request = {'coordinates': coordinates};
+      dio.FormData formData = dio.FormData.fromMap(request);
+      await _authService.updateProfile(formData);
+    } catch (e) {
+      locationStatus.value = 'Failed to get location';
+      toaster.error('Location error: ${e.toString()}');
+    } finally {
+      isGettingLocation.value = false;
+    }
+  }
+
   Future<void> loadProfile() async {
     try {
       isLoading.value = true;
@@ -77,8 +124,8 @@ class ProfileCtrl extends GetxController {
         _updateControllers();
         _loadAvailabilityFromApi(response);
         await write(AppSession.userData, response);
-        final dashboardCtrl = Get.find<DashboardCtrl>();
-        dashboardCtrl.loadUserData();
+        final homeCtrl = Get.find<HomeCtrl>();
+        homeCtrl.getUserProfile();
       } else {
         await _loadLocalData();
       }
@@ -109,7 +156,7 @@ class ProfileCtrl extends GetxController {
       equipment: List<Map<String, dynamic>>.from(data['equipment'] ?? []),
       location: LocationModel(
         address: data['location'] != null ? data['location']['address'] ?? '' : '',
-        coordinates: data['location'] != null ? List<String>.from(data['location']['coordinates'] ?? ['0.0', '0.0']) : ['0.0', '0.0'],
+        coordinates: data['location'] != null ? List<double>.from(data['location']['coordinates'] ?? [0.0, 0.0]) : [0.0, 0.0],
       ),
     );
     notificationRange.value = user.value.notificationRange;
@@ -173,16 +220,18 @@ class ProfileCtrl extends GetxController {
         'clinicAddress': clinicAddressController.text.trim(),
         'notificationRange': notificationRange.value,
         'type': user.value.type,
-        if (user.value.location.address.isNotEmpty) 'location': {'address': user.value.location.address, 'coordinates': user.value.location.coordinates.first},
+        'address': user.value.location.address,
+        'coordinates': user.value.location.coordinates.first,
       };
       dio.FormData formData = dio.FormData.fromMap(request);
       final response = await _authService.updateProfile(formData);
       if (response != null) {
         await write(AppSession.userData, response);
+        _loadLocalData();
         isEditMode = false;
         toaster.success('Profile updated successfully');
-        final dashboardCtrl = Get.find<DashboardCtrl>();
-        dashboardCtrl.loadUserData();
+        final homeCtrl = Get.find<HomeCtrl>();
+        homeCtrl.getUserProfile();
       }
     } catch (e) {
       toaster.error('Error updating profile: ${e.toString()}');

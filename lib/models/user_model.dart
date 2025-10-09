@@ -54,7 +54,7 @@ class UserModel {
       equipment: List<Map<String, dynamic>>.from(json['equipment'] ?? []),
       location: LocationModel(
         address: json['location'] != null ? json['location']['address'] ?? '' : '',
-        coordinates: json['location'] != null ? List<String>.from(json['location']['coordinates'] ?? ['0.0', '0.0']) : ['0.0', '0.0'],
+        coordinates: json['location'] != null ? List<double>.from(json['location']['coordinates'] ?? [0.0, 0.0]) : [0.0, 0.0],
       ),
     );
   }
@@ -100,7 +100,7 @@ class UserModel {
 
 class LocationModel {
   final String address;
-  final List<String> coordinates;
+  final List<double> coordinates;
 
   LocationModel({required this.address, required this.coordinates});
 }

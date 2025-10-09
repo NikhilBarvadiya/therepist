@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:therepist/utils/routes/route_name.dart';
+import 'package:therepist/utils/service/notification_service.dart';
 import 'package:therepist/utils/toaster.dart';
 import 'package:therepist/views/auth/auth_service.dart';
 
@@ -28,7 +29,8 @@ class LoginCtrl extends GetxController {
     }
     isLoading.value = true;
     try {
-      final request = {'email': emailCtrl.text.trim(), 'password': passwordCtrl.text.trim()};
+      String? fcmToken = await notificationService.getToken();
+      final request = {'email': emailCtrl.text.trim(), 'password': passwordCtrl.text.trim(), 'fcmToken': fcmToken ?? ""};
       await authService.login(request);
     } finally {
       emailCtrl.clear();

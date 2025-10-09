@@ -24,6 +24,16 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>UIBackgroundModes</key>
+    <array>
+      <string>fetch</string>
+      <string>remote-notification</string>
+      <string>location</string>
+    </array>
+    <key>FirebaseAppDelegateProxyEnabled</key>
+    <true/>
+    <key>NSUserNotificationUsageDescription</key>
+    <string>We use notifications to keep you updated.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

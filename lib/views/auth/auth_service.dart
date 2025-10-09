@@ -33,6 +33,7 @@ class AuthService extends GetxService {
         return;
       }
       Get.back();
+      toaster.success(response.message.toString().capitalizeFirst.toString());
     } catch (err) {
       toaster.error(err.toString());
       return;
@@ -160,6 +161,62 @@ class AuthService extends GetxService {
         toaster.warning(response.message ?? 'Something went wrong');
         return;
       }
+      return response.data;
+    } catch (err) {
+      toaster.error(err.toString());
+      return;
+    }
+  }
+
+  Future<dynamic> getAppointments({int page = 1, String status = "", String search = ""}) async {
+    try {
+      final response = await ApiManager().call("${APIIndex.getAppointments}?page=$page&limit=10&status=$status&search=$search&isActive=true", {}, ApiType.get);
+      if (!response.success || response.data == null) return [];
+      return response.data;
+    } catch (err) {
+      toaster.error(err.toString());
+      return [];
+    }
+  }
+
+  Future<dynamic> requestsAccept({required String appointmentId}) async {
+    try {
+      final response = await ApiManager().call(APIIndex.requestsAccept, {"appointmentId": appointmentId}, ApiType.post);
+      if (!response.success || response.data == null || response.data == 0) {
+        toaster.warning(response.message ?? 'Something went wrong');
+        return;
+      }
+      toaster.success('Appointment accepted successfully');
+      return response.data;
+    } catch (err) {
+      toaster.error(err.toString());
+      return;
+    }
+  }
+
+  Future<dynamic> requestsCancel({required String appointmentId}) async {
+    try {
+      final response = await ApiManager().call(APIIndex.requestsCancel, {"appointmentId": appointmentId}, ApiType.post);
+      if (!response.success || response.data == null || response.data == 0) {
+        toaster.warning(response.message ?? 'Something went wrong');
+        return;
+      }
+      toaster.success('Appointment cancelled successfully');
+      return response.data;
+    } catch (err) {
+      toaster.error(err.toString());
+      return;
+    }
+  }
+
+  Future<dynamic> completeAppointment({required String appointmentId}) async {
+    try {
+      final response = await ApiManager().call(APIIndex.completeAppointment, {"appointmentId": appointmentId}, ApiType.post);
+      if (!response.success || response.data == null || response.data == 0) {
+        toaster.warning(response.message ?? 'Something went wrong');
+        return;
+      }
+      toaster.success('Appointment completed successfully');
       return response.data;
     } catch (err) {
       toaster.error(err.toString());

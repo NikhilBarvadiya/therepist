@@ -64,30 +64,31 @@ class Services extends StatelessWidget {
                 ),
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.only(left: 20, right: 20, top: 16),
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                     child: Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2))],
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 2))],
                       ),
                       child: TextField(
                         controller: searchController,
+                        style: GoogleFonts.poppins(fontSize: 15),
                         decoration: InputDecoration(
-                          hintText: 'Search services...',
-                          hintStyle: GoogleFonts.poppins(color: Colors.grey[600]),
-                          prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
+                          hintText: 'Search by name, service...',
+                          hintStyle: GoogleFonts.poppins(color: Colors.grey[400], fontSize: 15),
+                          prefixIcon: Icon(Icons.search_rounded, color: Colors.grey[500], size: 22),
                           border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                           suffixIcon: searchController.text.isNotEmpty
                               ? IconButton(
-                                  icon: Icon(Icons.clear, color: Colors.grey[600]),
+                                  icon: Icon(Icons.clear_rounded, color: Colors.grey[500], size: 20),
                                   onPressed: () {
                                     searchController.clear();
-                                    ctrl.clearSearch();
+                                    ctrl.searchServices('');
                                   },
                                 )
-                              : null,
+                              : const SizedBox.shrink(),
                         ),
                         onChanged: (value) => ctrl.searchServices(value),
                       ),
@@ -127,8 +128,9 @@ class Services extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 15),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 12, offset: const Offset(0, 4))],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade300, width: .3),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 8, offset: const Offset(0, 2))],
       ),
       child: Material(
         color: Colors.transparent,

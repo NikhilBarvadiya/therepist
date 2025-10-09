@@ -17,13 +17,12 @@ class RegisterCtrl extends GetxController {
   final experienceCtrl = TextEditingController();
 
   var isLoading = false.obs, isPasswordVisible = false.obs, isGettingLocation = false.obs;
-  var coordinates = '["0.0", "0.0"]'.obs, locationStatus = 'Fetching location...'.obs;
+  var coordinates = [0.0, 0.0].obs, locationStatus = 'Fetching location...'.obs;
   var practitionerType = 'Regular'.obs;
 
   AuthService get authService => Get.find<AuthService>();
 
-  var services = <ServiceModel>[].obs;
-  var equipment = <ServiceModel>[].obs;
+  var services = <ServiceModel>[].obs, equipment = <ServiceModel>[].obs;
   var selectedServices = <ServiceModel>[].obs, selectedEquipment = <ServiceModel>[].obs;
 
   @override
@@ -68,7 +67,7 @@ class RegisterCtrl extends GetxController {
       }
       locationStatus.value = 'Getting your location...';
       Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high, timeLimit: const Duration(seconds: 15));
-      coordinates.value = '["${position.latitude}", "${position.longitude}"]';
+      coordinates.value = [position.latitude, position.longitude];
       locationStatus.value = 'Location fetched successfully!';
     } catch (e) {
       locationStatus.value = 'Failed to get location';
@@ -143,7 +142,7 @@ class RegisterCtrl extends GetxController {
         'experience': experience,
         'type': practitionerType.value,
         'address': addressCtrl.text.trim(),
-        'coordinates': coordinates.value,
+        'coordinates': coordinates,
         'services': servicesIds,
         'equipment': equipmentIds,
       };
