@@ -179,9 +179,9 @@ class AuthService extends GetxService {
     }
   }
 
-  Future<dynamic> requestsAccept({required String appointmentId}) async {
+  Future<dynamic> requestsAccept({required String requestId}) async {
     try {
-      final response = await ApiManager().call(APIIndex.requestsAccept, {"appointmentId": appointmentId}, ApiType.post);
+      final response = await ApiManager().call(APIIndex.requestsAccept, {"requestId": requestId}, ApiType.post);
       if (!response.success || response.data == null || response.data == 0) {
         toaster.warning(response.message ?? 'Something went wrong');
         return;
@@ -194,9 +194,9 @@ class AuthService extends GetxService {
     }
   }
 
-  Future<dynamic> requestsCancel({required String appointmentId}) async {
+  Future<dynamic> requestsCancel({required String requestId}) async {
     try {
-      final response = await ApiManager().call(APIIndex.requestsCancel, {"appointmentId": appointmentId}, ApiType.post);
+      final response = await ApiManager().call(APIIndex.requestsCancel, {"requestId": requestId}, ApiType.post);
       if (!response.success || response.data == null || response.data == 0) {
         toaster.warning(response.message ?? 'Something went wrong');
         return;
@@ -209,9 +209,9 @@ class AuthService extends GetxService {
     }
   }
 
-  Future<dynamic> completeAppointment({required String appointmentId}) async {
+  Future<dynamic> completeAppointment({required String requestId}) async {
     try {
-      final response = await ApiManager().call(APIIndex.completeAppointment, {"appointmentId": appointmentId}, ApiType.post);
+      final response = await ApiManager().call(APIIndex.completeAppointment, {"requestId": requestId}, ApiType.post);
       if (!response.success || response.data == null || response.data == 0) {
         toaster.warning(response.message ?? 'Something went wrong');
         return;

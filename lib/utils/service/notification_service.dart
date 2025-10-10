@@ -13,33 +13,6 @@ class NotificationService {
     await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(alert: true, badge: true, sound: true);
   }
 
-  void showRemoteNotificationAndroid(RemoteMessage message) async {
-    RemoteNotification? notification = message.notification;
-    AndroidNotification? android = message.notification?.android;
-    AppleNotification? apple = message.notification?.apple;
-    if (notification != null) {
-      NotificationDetails notificationDetails = NotificationDetails(
-        android: android != null
-            ? const AndroidNotificationDetails(
-                "tasks_event",
-                "Tasks Event",
-                ticker: 'ticker',
-                showWhen: true,
-                playSound: true,
-                enableLights: true,
-                enableVibration: true,
-                priority: Priority.high,
-                importance: Importance.max,
-                visibility: NotificationVisibility.public,
-                channelDescription: "The event reminder system for doctor user to manage appointments",
-              )
-            : null,
-        iOS: apple != null ? const DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: true) : null,
-      );
-      await flutterLocalNotificationsPlugin.show(notification.hashCode, notification.title, notification.body, notificationDetails);
-    }
-  }
-
   Future<String?> getToken() async {
     try {
       await FirebaseMessaging.instance.deleteToken();

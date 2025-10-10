@@ -66,36 +66,34 @@ class Services extends StatelessWidget {
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                    child: Obx(() {
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(14),
-                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 2))],
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 2))],
+                      ),
+                      child: TextField(
+                        controller: searchController,
+                        style: GoogleFonts.poppins(fontSize: 15),
+                        decoration: InputDecoration(
+                          hintText: 'Search by name, service...',
+                          hintStyle: GoogleFonts.poppins(color: Colors.grey[400], fontSize: 15),
+                          prefixIcon: Icon(Icons.search_rounded, color: Colors.grey[500], size: 22),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                          suffixIcon: searchController.text.isNotEmpty
+                              ? IconButton(
+                                  icon: Icon(Icons.clear_rounded, color: Colors.grey[500], size: 20),
+                                  onPressed: () {
+                                    searchController.clear();
+                                    ctrl.searchServices('');
+                                  },
+                                )
+                              : const SizedBox.shrink(),
                         ),
-                        child: TextField(
-                          controller: searchController,
-                          style: GoogleFonts.poppins(fontSize: 15),
-                          decoration: InputDecoration(
-                            hintText: 'Search by name, service...',
-                            hintStyle: GoogleFonts.poppins(color: Colors.grey[400], fontSize: 15),
-                            prefixIcon: Icon(Icons.search_rounded, color: Colors.grey[500], size: 22),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                            suffixIcon: searchController.text.isNotEmpty
-                                ? IconButton(
-                                    icon: Icon(Icons.clear_rounded, color: Colors.grey[500], size: 20),
-                                    onPressed: () {
-                                      searchController.clear();
-                                      ctrl.searchServices('');
-                                    },
-                                  )
-                                : const SizedBox.shrink(),
-                          ),
-                          onChanged: (value) => ctrl.searchServices(value),
-                        ),
-                      );
-                    }),
+                        onChanged: (value) => ctrl.searchServices(value),
+                      ),
+                    ),
                   ),
                 ),
                 Obx(() {

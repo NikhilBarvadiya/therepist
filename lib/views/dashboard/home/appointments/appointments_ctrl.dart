@@ -86,12 +86,12 @@ class AppointmentsCtrl extends GetxController {
     update();
   }
 
-  Future<void> acceptAppointment(String appointmentId) async {
+  Future<void> acceptAppointment(String requestId) async {
     try {
       isAcceptLoading.value = true;
-      final response = await _authService.requestsAccept(appointmentId: appointmentId);
+      final response = await _authService.requestsAccept(requestId: requestId);
       if (response != null) {
-        _updateAppointmentStatus(appointmentId, 'accepted');
+        _updateAppointmentStatus(requestId, 'accepted');
       }
     } catch (err) {
       toaster.error('Error accepting appointment: ${err.toString()}');
@@ -100,12 +100,12 @@ class AppointmentsCtrl extends GetxController {
     }
   }
 
-  Future<void> cancelAppointment(String appointmentId) async {
+  Future<void> cancelAppointment(String requestId) async {
     try {
       isDeleteLoading.value = true;
-      final response = await _authService.requestsCancel(appointmentId: appointmentId);
+      final response = await _authService.requestsCancel(requestId: requestId);
       if (response != null) {
-        _updateAppointmentStatus(appointmentId, 'cancelled');
+        _updateAppointmentStatus(requestId, 'cancelled');
       }
     } catch (err) {
       toaster.error('Error accepting appointment: ${err.toString()}');
@@ -114,12 +114,12 @@ class AppointmentsCtrl extends GetxController {
     }
   }
 
-  Future<void> completeAppointment(String appointmentId) async {
+  Future<void> completeAppointment(String requestId) async {
     try {
       isCompleteLoading.value = true;
-      final response = await _authService.completeAppointment(appointmentId: appointmentId);
+      final response = await _authService.completeAppointment(requestId: requestId);
       if (response != null) {
-        _updateAppointmentStatus(appointmentId, 'cancelled');
+        _updateAppointmentStatus(requestId, 'completed');
       }
     } catch (err) {
       toaster.error('Error accepting appointment: ${err.toString()}');

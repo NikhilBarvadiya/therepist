@@ -164,11 +164,19 @@ class _AppointmentsState extends State<Appointments> {
         ],
       ),
       actions: [
-        IconButton(
-          icon: Icon(Icons.refresh_rounded, color: decoration.colorScheme.primary),
-          onPressed: ctrl.refreshAppointments,
+        Padding(
+          padding: const EdgeInsets.only(right: 8.0),
+          child: IconButton(
+            style: ButtonStyle(
+              shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+              padding: WidgetStatePropertyAll(const EdgeInsets.all(8)),
+              backgroundColor: WidgetStatePropertyAll(Colors.grey[100]),
+            ),
+            icon: const Icon(Icons.refresh, color: Colors.black87, size: 22),
+            onPressed: () => ctrl.refreshAppointments(),
+            tooltip: 'Refresh Services',
+          ),
         ),
-        const SizedBox(width: 8),
       ],
     );
   }
@@ -532,13 +540,19 @@ class _AppointmentsState extends State<Appointments> {
                             ),
                             const SizedBox(height: 12),
                             Row(
+                              spacing: 12.0,
                               children: [
-                                Expanded(child: _buildInfoTile(Icons.phone_rounded, 'Mobile', appointment.patientMobile)),
-                                const SizedBox(width: 12),
-                                Expanded(child: _buildInfoTile(Icons.email_rounded, 'Email', appointment.patientEmail)),
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () => helper.makePhoneCall(appointment.patientMobile.toString()),
+                                    child: _buildInfoTile(Icons.phone_rounded, 'Mobile', appointment.patientMobile),
+                                  ),
+                                ),
+                                if (appointment.patientAddress.isNotEmpty) ...[Expanded(child: _buildInfoTile(Icons.home_rounded, 'Address', appointment.patientAddress, fullWidth: true))],
                               ],
                             ),
-                            if (appointment.patientAddress.isNotEmpty) ...[const SizedBox(height: 12), _buildInfoTile(Icons.home_rounded, 'Address', appointment.patientAddress, fullWidth: true)],
+                            const SizedBox(height: 12),
+                            _buildInfoTile(Icons.email_rounded, 'Email', appointment.patientEmail),
                             if (appointment.status.toLowerCase() == 'pending' || appointment.status.toLowerCase() == 'accepted') ...[
                               const SizedBox(height: 16),
                               Divider(color: Colors.grey[300], height: 1),
@@ -618,20 +632,6 @@ class _AppointmentsState extends State<Appointments> {
         if (status == 'pending')
           Row(
             children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => _showCancelDialog(appointment.id, ctrl),
-                  icon: const Icon(Icons.close_rounded, size: 18),
-                  label: Text('Decline', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600)),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.red,
-                    side: const BorderSide(color: Colors.red),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: () => ctrl.acceptAppointment(appointment.id),

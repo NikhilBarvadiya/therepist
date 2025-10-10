@@ -10,6 +10,7 @@ import 'package:therepist/utils/helper.dart';
 import 'package:therepist/utils/theme/light.dart';
 import 'package:therepist/views/dashboard/home/home_ctrl.dart';
 import 'package:therepist/views/dashboard/home/appointments/appointments.dart';
+import 'package:therepist/views/dashboard/profile/settings.dart';
 
 class Home extends StatelessWidget {
   const Home({super.key});
@@ -22,7 +23,7 @@ class Home extends StatelessWidget {
         return Scaffold(
           backgroundColor: Colors.grey[50],
           body: RefreshIndicator(
-            onRefresh: () => ctrl.loadAppointments(),
+            onRefresh: () => ctrl.loadHomeData(),
             child: Stack(
               children: [
                 CustomScrollView(
@@ -36,11 +37,8 @@ class Home extends StatelessWidget {
                   ],
                 ),
                 Obx(() {
-                  if (ctrl.isAcceptLoading.value || ctrl.isDeleteLoading.value) {
-                    return _buildFullScreenLoading(
-                      ctrl.isAcceptLoading.value ? 'Accepting Request...' : 'Declining Request...',
-                      ctrl.isAcceptLoading.value ? Icons.check_circle_outline : Icons.cancel_outlined,
-                    );
+                  if (ctrl.isAcceptLoading.value) {
+                    return _buildFullScreenLoading('Accepting Request...', Icons.check_circle_outline);
                   }
                   return const SizedBox.shrink();
                 }),
@@ -114,9 +112,9 @@ class Home extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.end,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Hello, Dr.', style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600])),
+                    Text('Hello,', style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600])),
                     Text(
-                      ctrl.userName.value,
+                      "Dr. ${ctrl.userName.value.capitalizeFirst.toString()}",
                       style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
                     ),
                   ],
@@ -124,17 +122,16 @@ class Home extends StatelessWidget {
         ),
       ),
       actions: [
-        Padding(
-          padding: const EdgeInsets.only(right: 8.0),
-          child: IconButton(
-            icon: Badge(
-              smallSize: 8,
-              backgroundColor: Colors.red,
-              child: const Icon(Icons.notifications_outlined, color: Colors.black87),
-            ),
-            onPressed: () => Get.snackbar('Notifications', 'No new notifications', snackPosition: SnackPosition.BOTTOM),
+        IconButton(
+          style: ButtonStyle(
+            shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+            padding: WidgetStatePropertyAll(const EdgeInsets.all(8)),
+            backgroundColor: WidgetStatePropertyAll(Colors.grey[100]),
           ),
-        ),
+          icon: Icon(Icons.settings_outlined, color: decoration.colorScheme.primary, size: 20),
+          onPressed: () => Get.to(() => const Settings()),
+          tooltip: 'Settings',
+        ).paddingOnly(right: 8.0),
       ],
     );
   }
@@ -206,7 +203,7 @@ class Home extends StatelessWidget {
                                 style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                               ),
                               const SizedBox(height: 4),
-                              Text(banner['subtitle'].toString(), style: GoogleFonts.poppins(fontSize: 14, color: Colors.white.withOpacity(0.9))),
+                              Text(banner['subtitle'].toString(), style: GoogleFonts.poppins(fontSize: 12, color: Colors.white.withOpacity(0.9))),
                             ],
                           ),
                         ),
@@ -394,82 +391,6 @@ class Home extends StatelessWidget {
             child: Container(
               width: 280,
               decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 45,
-                          height: 45,
-                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                width: 120,
-                                height: 16,
-                                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
-                              ),
-                              const SizedBox(height: 6),
-                              Container(
-                                width: 80,
-                                height: 12,
-                                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    ...List.generate(
-                      3,
-                      (index) => Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 16,
-                              height: 16,
-                              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              width: 180,
-                              height: 12,
-                              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            height: 36,
-                            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Container(
-                            height: 36,
-                            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
             ),
           );
         },
@@ -632,19 +553,6 @@ class Home extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => _showDeclineDialog(request.id, ctrl),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.red,
-                      side: const BorderSide(color: Colors.red),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                    ),
-                    child: Text('Decline', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w500)),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
                   child: ElevatedButton(
                     onPressed: () => ctrl.acceptRequest(request.id),
                     style: ElevatedButton.styleFrom(
@@ -770,73 +678,6 @@ class Home extends StatelessWidget {
           const SizedBox(height: 4),
           Text(subtitle, style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[500])),
         ],
-      ),
-    );
-  }
-
-  void _showDeclineDialog(String requestId, HomeCtrl ctrl) {
-    Get.dialog(
-      Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: ClipRRect(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: Colors.red.withOpacity(0.1), shape: BoxShape.circle),
-                  child: const Icon(Icons.warning_rounded, color: Colors.red, size: 40),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Decline Request?',
-                  style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Are you sure you want to decline this appointment request?',
-                  style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () => Get.back(),
-                        style: OutlinedButton.styleFrom(
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                        child: Text('Cancel', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w500)),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          ctrl.declineRequest(requestId);
-                          Get.back();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                        child: Text(
-                          'Decline',
-                          style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.white),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }

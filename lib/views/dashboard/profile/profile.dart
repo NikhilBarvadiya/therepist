@@ -114,16 +114,8 @@ class _ProfileState extends State<Profile> {
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
-          children: [
-            _buildProfileHeaderShimmer(),
-            const SizedBox(height: 24),
-            _buildLocationStatusShimmer(),
-            _buildSectionShimmer('Personal Information'),
-            const SizedBox(height: 24),
-            _buildSectionShimmer('Clinic Information'),
-            const SizedBox(height: 24),
-            _buildStatsShimmer(),
-          ],
+          spacing: 24.0,
+          children: [_buildProfileHeaderShimmer(), _buildLocationStatusShimmer(), _buildSectionShimmer('Personal Information'), _buildSectionShimmer('Clinic Information'), _buildStatsShimmer()],
         ),
       ),
     );
