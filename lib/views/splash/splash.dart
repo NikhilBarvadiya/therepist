@@ -68,7 +68,13 @@ class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
                               borderRadius: BorderRadius.circular(24),
                               boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 30, offset: const Offset(0, 10))],
                             ),
-                            child: const Icon(Icons.local_hospital_rounded, size: 48, color: Color(0xFF10B981)),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: Image.asset('assets/applogo2.png', fit: BoxFit.contain),
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -76,7 +82,7 @@ class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
                       Opacity(
                         opacity: _fadeAnimation.value,
                         child: const Text(
-                          'Therapist',
+                          'HealUp Therapist',
                           style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 0.5),
                         ),
                       ),
@@ -88,7 +94,11 @@ class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
                       const SizedBox(height: 60),
                       Opacity(
                         opacity: _fadeAnimation.value,
-                        child: const SizedBox(width: 32, height: 32, child: CircularProgressIndicator(strokeWidth: 3, valueColor: AlwaysStoppedAnimation<Color>(Colors.white))),
+                        child: const SizedBox(
+                          width: 32,
+                          height: 32,
+                          child: CircularProgressIndicator(strokeWidth: 3, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
+                        ),
                       ),
                     ],
                   ),

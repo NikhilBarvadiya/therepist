@@ -100,8 +100,10 @@ class Home extends StatelessWidget {
       pinned: true,
       floating: true,
       expandedHeight: 120,
+      centerTitle: false,
       automaticallyImplyLeading: false,
       flexibleSpace: FlexibleSpaceBar(
+        centerTitle: false,
         collapseMode: CollapseMode.pin,
         background: Container(color: Colors.white),
         titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
@@ -109,6 +111,7 @@ class Home extends StatelessWidget {
           () => ctrl.isLoading.value
               ? _buildAppBarShimmer()
               : Column(
+                  mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.end,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -188,7 +191,11 @@ class Home extends StatelessWidget {
                         ),
                         Container(
                           decoration: BoxDecoration(
-                            gradient: LinearGradient(colors: [Colors.black.withOpacity(0.6), Colors.transparent], begin: Alignment.bottomCenter, end: Alignment.topCenter),
+                            gradient: LinearGradient(
+                              colors: [Colors.black.withOpacity(0.6), Colors.transparent],
+                              begin: Alignment.bottomCenter,
+                              end: Alignment.topCenter,
+                            ),
                           ),
                         ),
                         Positioned(
@@ -512,7 +519,11 @@ class Home extends StatelessWidget {
                   width: 45,
                   height: 45,
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(colors: [decoration.colorScheme.primary, decoration.colorScheme.primary.withOpacity(0.7)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                    gradient: LinearGradient(
+                      colors: [decoration.colorScheme.primary, decoration.colorScheme.primary.withOpacity(0.7)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(Icons.person_rounded, color: Colors.white, size: 20),
@@ -595,7 +606,11 @@ class Home extends StatelessWidget {
                   width: 45,
                   height: 45,
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(colors: [decoration.colorScheme.primary, decoration.colorScheme.primary.withOpacity(0.7)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                    gradient: LinearGradient(
+                      colors: [decoration.colorScheme.primary, decoration.colorScheme.primary.withOpacity(0.7)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(Icons.person_rounded, color: Colors.white, size: 20),

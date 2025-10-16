@@ -185,7 +185,7 @@ class Settings extends StatelessWidget {
           Text('Version 1.0.0 • © 2024', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[500])),
           const SizedBox(height: 4),
           Text(
-            'Empowering therapists, healing patients',
+            'Empowering Therapists, healing patients',
             style: GoogleFonts.poppins(fontSize: 12, fontStyle: FontStyle.italic, color: Colors.grey[400]),
           ),
         ],

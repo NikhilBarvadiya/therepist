@@ -44,7 +44,9 @@ class Equipment extends StatelessWidget {
                         'Equipment',
                         style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
                       ),
-                      Obx(() => Text('${ctrl.filteredEquipment.length} equipment available', style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]))),
+                      Obx(
+                        () => Text('${ctrl.filteredEquipment.length} equipment available', style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600])),
+                      ),
                     ],
                   ),
                   actions: [
@@ -323,7 +325,9 @@ class Equipment extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 40),
           child: Text(
-            ctrl.searchQuery.value.isEmpty ? 'No equipment available for rental at the moment. Check back later.' : 'No equipment found for "${ctrl.searchQuery.value}". Try different keywords.',
+            ctrl.searchQuery.value.isEmpty
+                ? 'No equipment available for rental at the moment. Check back later.'
+                : 'No equipment found for "${ctrl.searchQuery.value}". Try different keywords.',
             style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[500]),
             textAlign: TextAlign.center,
           ),

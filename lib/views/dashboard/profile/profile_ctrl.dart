@@ -221,7 +221,7 @@ class ProfileCtrl extends GetxController {
         'notificationRange': notificationRange.value,
         'type': user.value.type,
         'address': user.value.location.address,
-        'coordinates': user.value.location.coordinates.first,
+        'coordinates': user.value.location.coordinates,
       };
       dio.FormData formData = dio.FormData.fromMap(request);
       final response = await _authService.updateProfile(formData);
@@ -438,7 +438,9 @@ class ProfileCtrl extends GetxController {
         userData['workingDays'] = availableDays.toList();
         final schedulesMap = <String, dynamic>{};
         daySchedules.forEach((day, slots) {
-          schedulesMap[day] = slots.map((slot) => {'start': '${slot['start']!.hour}:${slot['start']!.minute}', 'end': '${slot['end']!.hour}:${slot['end']!.minute}'}).toList();
+          schedulesMap[day] = slots
+              .map((slot) => {'start': '${slot['start']!.hour}:${slot['start']!.minute}', 'end': '${slot['end']!.hour}:${slot['end']!.minute}'})
+              .toList();
         });
         userData['daySchedules'] = schedulesMap;
         await write(AppSession.userData, userData);
@@ -468,7 +470,10 @@ class ProfileCtrl extends GetxController {
             final fromParts = (slot['from'] as String).split(':');
             final toParts = (slot['to'] as String).split(':');
 
-            return {'start': TimeOfDay(hour: int.parse(fromParts[0]), minute: int.parse(fromParts[1])), 'end': TimeOfDay(hour: int.parse(toParts[0]), minute: int.parse(toParts[1]))};
+            return {
+              'start': TimeOfDay(hour: int.parse(fromParts[0]), minute: int.parse(fromParts[1])),
+              'end': TimeOfDay(hour: int.parse(toParts[0]), minute: int.parse(toParts[1])),
+            };
           }).toList();
           daySchedules[dayName] = timeSlots;
         }
