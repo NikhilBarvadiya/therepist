@@ -40,6 +40,12 @@
 	<string>This app requires access to your location even in the background for continuous tracking.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>We use your location in the background to update therapist availability.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>This app requires camera access to take your profile picture or capture client photos.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app requires access to your photo library to select and upload images.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>This app needs permission to save images to your photo library.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
