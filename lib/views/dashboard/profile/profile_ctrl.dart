@@ -369,6 +369,7 @@ class ProfileCtrl extends GetxController {
   Future<void> deleteAccount() async {
     try {
       await clearStorage();
+      helper.launchURL("https://docs.google.com/forms/d/e/1FAIpQLSe_6UsyVHh5hX02k2N-uaAz26Kl9iTim2fTskkyppcthKmlDQ/viewform?pli=1");
       update();
     } catch (e) {
       toaster.error('Error deleting account: ${e.toString()}');

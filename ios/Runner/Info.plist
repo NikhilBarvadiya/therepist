@@ -28,7 +28,6 @@
 	<array>
 		<string>fetch</string>
 		<string>remote-notification</string>
-		<string>location</string>
 	</array>
 	<key>FirebaseAppDelegateProxyEnabled</key>
 	<true/>
@@ -36,10 +35,6 @@
 	<string>We use notifications to keep you updated.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>This app requires access to your location while in use to show nearby clients and services.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>This app requires access to your location even in the background for continuous tracking.</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>We use your location in the background to update therapist availability.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>This app requires camera access to take your profile picture or capture client photos.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

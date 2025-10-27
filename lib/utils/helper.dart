@@ -6,6 +6,14 @@ import 'package:url_launcher/url_launcher.dart';
 class Helper {
   final ImagePicker _picker = ImagePicker();
 
+  Future<void> launchURL(String val) async {
+    if (await canLaunchUrl(Uri.parse(val))) {
+      await launchUrl(Uri.parse(val));
+    } else {
+      throw 'Could not launch $val';
+    }
+  }
+
   Future<File?> pickImage({ImageSource? source}) async {
     try {
       final XFile? file = await _picker.pickImage(source: source ?? ImageSource.camera);

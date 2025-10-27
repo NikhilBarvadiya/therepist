@@ -72,7 +72,7 @@ class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
                               padding: const EdgeInsets.all(12),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(16),
-                                child: Image.asset('assets/applogo2.png', fit: BoxFit.contain),
+                                child: Image.asset('assets/logo.png', fit: BoxFit.contain),
                               ),
                             ),
                           ),
