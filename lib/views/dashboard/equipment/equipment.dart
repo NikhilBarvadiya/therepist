@@ -23,16 +23,14 @@ class Equipment extends StatelessWidget {
           }
         });
         return Scaffold(
-          backgroundColor: Colors.grey[50],
           body: RefreshIndicator(
             onRefresh: () => ctrl.refreshServices(),
             child: CustomScrollView(
               controller: scrollController,
               slivers: [
                 SliverAppBar(
-                  elevation: 0,
                   toolbarHeight: 65,
-                  backgroundColor: Colors.white,
+                  backgroundColor: decoration.colorScheme.primary,
                   pinned: true,
                   floating: true,
                   automaticallyImplyLeading: false,
@@ -40,13 +38,8 @@ class Equipment extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.end,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Equipment',
-                        style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
-                      ),
-                      Obx(
-                        () => Text('${ctrl.filteredEquipment.length} equipment available', style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600])),
-                      ),
+                      Text('Equipment', style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold)),
+                      Obx(() => Text('${ctrl.filteredEquipment.length} equipment available', style: GoogleFonts.poppins(fontSize: 14, letterSpacing: .5))),
                     ],
                   ),
                   actions: [
@@ -58,7 +51,7 @@ class Equipment extends StatelessWidget {
                           padding: WidgetStatePropertyAll(const EdgeInsets.all(8)),
                           backgroundColor: WidgetStatePropertyAll(Colors.grey[100]),
                         ),
-                        icon: const Icon(Icons.refresh, color: Colors.black87, size: 22),
+                        icon: Icon(Icons.refresh, color: decoration.colorScheme.primary, size: 22),
                         onPressed: () => ctrl.refreshServices(),
                         tooltip: 'Refresh Equipment',
                       ),
@@ -325,9 +318,7 @@ class Equipment extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 40),
           child: Text(
-            ctrl.searchQuery.value.isEmpty
-                ? 'No equipment available for rental at the moment. Check back later.'
-                : 'No equipment found for "${ctrl.searchQuery.value}". Try different keywords.',
+            ctrl.searchQuery.value.isEmpty ? 'No equipment available for rental at the moment. Check back later.' : 'No equipment found for "${ctrl.searchQuery.value}". Try different keywords.',
             style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[500]),
             textAlign: TextAlign.center,
           ),

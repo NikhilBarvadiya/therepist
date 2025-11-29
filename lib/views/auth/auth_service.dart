@@ -32,7 +32,7 @@ class AuthService extends GetxService {
         toaster.warning(response.message ?? 'Something went wrong');
         return;
       }
-      Get.back();
+      Get.close(1);
       toaster.success(response.message.toString().capitalizeFirst.toString());
     } catch (err) {
       toaster.error(err.toString());

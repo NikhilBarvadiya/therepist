@@ -113,7 +113,7 @@ class _AppointmentCountdownPopupState extends State<AppointmentCountdownPopup> w
     if (_isDisposed) return;
     _slideController.reverse().then((_) {
       if (!_isDisposed && mounted) {
-        Get.back();
+        Get.close(1);
       }
     });
   }

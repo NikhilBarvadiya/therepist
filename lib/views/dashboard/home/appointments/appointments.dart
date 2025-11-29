@@ -56,33 +56,30 @@ class _AppointmentsState extends State<Appointments> {
       init: AppointmentsCtrl(),
       builder: (ctrl) {
         return Scaffold(
-          backgroundColor: Colors.grey[50],
-          body: SafeArea(
-            child: RefreshIndicator(
-              color: decoration.colorScheme.primary,
-              onRefresh: ctrl.refreshAppointments,
-              child: Stack(
-                children: [
-                  CustomScrollView(
-                    controller: scrollController,
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    slivers: [_buildAppBar(ctrl), _buildSearchBar(ctrl), _buildFilterChips(ctrl), _buildAppointmentsList(ctrl)],
-                  ),
-                  Obx(() {
-                    if (ctrl.isAcceptLoading.value || ctrl.isDeleteLoading.value || ctrl.isCompleteLoading.value) {
-                      return _buildFullScreenLoading(
-                        ctrl.isAcceptLoading.value
-                            ? 'Accepting Request...'
-                            : ctrl.isCompleteLoading.value
-                            ? 'Completing Request...'
-                            : 'Declining Request...',
-                        ctrl.isAcceptLoading.value || ctrl.isCompleteLoading.value ? Icons.check_circle_outline : Icons.cancel_outlined,
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  }),
-                ],
-              ),
+          body: RefreshIndicator(
+            color: decoration.colorScheme.primary,
+            onRefresh: ctrl.refreshAppointments,
+            child: Stack(
+              children: [
+                CustomScrollView(
+                  controller: scrollController,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  slivers: [_buildAppBar(ctrl), _buildSearchBar(ctrl), _buildFilterChips(ctrl), _buildAppointmentsList(ctrl)],
+                ),
+                Obx(() {
+                  if (ctrl.isAcceptLoading.value || ctrl.isDeleteLoading.value || ctrl.isCompleteLoading.value) {
+                    return _buildFullScreenLoading(
+                      ctrl.isAcceptLoading.value
+                          ? 'Accepting Request...'
+                          : ctrl.isCompleteLoading.value
+                          ? 'Completing Request...'
+                          : 'Declining Request...',
+                      ctrl.isAcceptLoading.value || ctrl.isCompleteLoading.value ? Icons.check_circle_outline : Icons.cancel_outlined,
+                    );
+                  }
+                  return const SizedBox.shrink();
+                }),
+              ],
             ),
           ),
         );
@@ -134,9 +131,8 @@ class _AppointmentsState extends State<Appointments> {
 
   Widget _buildAppBar(AppointmentsCtrl ctrl) {
     return SliverAppBar(
-      elevation: 0,
       toolbarHeight: 70,
-      backgroundColor: Colors.white,
+      backgroundColor: decoration.colorScheme.primary,
       pinned: true,
       floating: true,
       leading: IconButton(
@@ -145,20 +141,17 @@ class _AppointmentsState extends State<Appointments> {
           padding: const WidgetStatePropertyAll(EdgeInsets.all(8)),
           backgroundColor: WidgetStatePropertyAll(Colors.grey[100]),
         ),
-        icon: const Icon(Icons.arrow_back, color: Colors.black87),
-        onPressed: () => Get.back(),
+        icon: Icon(Icons.arrow_back, color: decoration.colorScheme.primary),
+        onPressed: () => Get.close(1),
       ),
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Appointments',
-            style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
-          ),
+          Text('Appointments', style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold)),
           Obx(
             () => Text(
               '${ctrl.filteredAppointments.length} ${ctrl.filteredAppointments.length == 1 ? 'appointment' : 'appointments'}',
-              style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.w400),
+              style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w400),
             ),
           ),
         ],
@@ -172,7 +165,7 @@ class _AppointmentsState extends State<Appointments> {
               padding: WidgetStatePropertyAll(const EdgeInsets.all(8)),
               backgroundColor: WidgetStatePropertyAll(Colors.grey[100]),
             ),
-            icon: const Icon(Icons.refresh, color: Colors.black87, size: 22),
+            icon: Icon(Icons.refresh, color: decoration.colorScheme.primary, size: 22),
             onPressed: () => ctrl.refreshAppointments(),
             tooltip: 'Refresh Services',
           ),
@@ -732,7 +725,7 @@ class _AppointmentsState extends State<Appointments> {
                       child: ElevatedButton(
                         onPressed: () {
                           ctrl.cancelAppointment(appointmentId);
-                          Get.back();
+                          Get.close(1);
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red,

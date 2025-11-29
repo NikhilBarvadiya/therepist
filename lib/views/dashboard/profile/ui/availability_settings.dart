@@ -18,22 +18,17 @@ class _AvailabilitySettingsState extends State<AvailabilitySettings> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.white,
-        title: Text(
-          'Clinic Availability',
-          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 20),
-        ),
+        backgroundColor: decoration.colorScheme.primary,
+        title: Text('Clinic Availability', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
         leading: IconButton(
           style: ButtonStyle(
             shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
             padding: WidgetStatePropertyAll(const EdgeInsets.all(8)),
             backgroundColor: WidgetStatePropertyAll(Colors.grey[100]),
           ),
-          icon: const Icon(Icons.arrow_back, color: Colors.black87, size: 20),
-          onPressed: () => Get.back(),
+          icon: Icon(Icons.arrow_back, color: decoration.colorScheme.primary, size: 20),
+          onPressed: () => Get.close(1),
         ),
         actions: [
           Obx(
@@ -71,10 +66,10 @@ class _AvailabilitySettingsState extends State<AvailabilitySettings> {
               children: [
                 Text(
                   'Working Days & Time Slots',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.black87),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87),
                 ),
-                const SizedBox(height: 8),
-                Text('Set your clinic working days and multiple time slots for appointments', style: TextStyle(fontSize: 14, color: Colors.grey[600], height: 1.4)),
+                const SizedBox(height: 4),
+                Text('Set your clinic working days and multiple time slots for appointments', style: TextStyle(fontSize: 12, color: Colors.grey[600], height: 1.4)),
               ],
             ),
           ),
@@ -387,7 +382,7 @@ class _AvailabilitySettingsState extends State<AvailabilitySettings> {
         title: const Text('Clear All Time Slots?'),
         content: const Text('This will remove all time slots from all days. This action cannot be undone.'),
         actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
+          TextButton(onPressed: () => Get.close(1), child: const Text('Cancel')),
           TextButton(
             onPressed: () {
               for (final day in ctrl.weekDays) {
@@ -401,7 +396,7 @@ class _AvailabilitySettingsState extends State<AvailabilitySettings> {
                   ctrl.updateSlotTime(dayName, 0, 'end', const TimeOfDay(hour: 17, minute: 0));
                 }
               }
-              Get.back();
+              Get.close(1);
               setState(() {});
               Get.snackbar('Cleared', 'All time slots have been reset', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.orange, colorText: Colors.white);
             },
@@ -418,11 +413,11 @@ class _AvailabilitySettingsState extends State<AvailabilitySettings> {
         title: const Text('Remove Time Slot?'),
         content: const Text('Are you sure you want to remove this time slot?'),
         actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
+          TextButton(onPressed: () => Get.close(1), child: const Text('Cancel')),
           TextButton(
             onPressed: () {
               ctrl.removeTimeSlot(dayName, slotIndex);
-              Get.back();
+              Get.close(1);
               setState(() {});
             },
             child: const Text('Remove', style: TextStyle(color: Colors.red)),
@@ -436,7 +431,7 @@ class _AvailabilitySettingsState extends State<AvailabilitySettings> {
     try {
       isLoading.value = true;
       await ctrl.saveAvailability();
-      Get.back();
+      Get.close(1);
     } catch (e) {
       Get.snackbar('Error', 'Failed to save availability: ${e.toString()}', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
     } finally {

@@ -20,21 +20,16 @@ class _ProfileState extends State<Profile> {
       init: ProfileCtrl(),
       builder: (ctrl) {
         return Scaffold(
-          backgroundColor: Colors.grey[50],
           body: RefreshIndicator(
             onRefresh: () => ctrl.loadProfile(),
             child: CustomScrollView(
               slivers: [
                 SliverAppBar(
-                  elevation: 0,
-                  backgroundColor: Colors.white,
+                  backgroundColor: decoration.colorScheme.primary,
                   pinned: true,
                   floating: true,
                   automaticallyImplyLeading: false,
-                  title: Text(
-                    'Profile',
-                    style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
-                  ),
+                  title: Text('Profile', style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold)),
                   actions: [
                     if (ctrl.isEditMode)
                       Obx(
@@ -90,7 +85,6 @@ class _ProfileState extends State<Profile> {
                         children: [
                           _buildProfileHeader(ctrl),
                           const SizedBox(height: 24),
-                          _buildLocationStatus(ctrl),
                           _buildPersonalInfoSection(ctrl),
                           const SizedBox(height: 24),
                           _buildClinicInfoSection(ctrl),
@@ -323,11 +317,12 @@ class _ProfileState extends State<Profile> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [decoration.colorScheme.primary, decoration.colorScheme.primary.withOpacity(0.8)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        gradient: LinearGradient(colors: [decoration.colorScheme.secondary, decoration.colorScheme.primary.withOpacity(0.8)], begin: Alignment.topLeft, end: Alignment.bottomRight),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 15, offset: const Offset(0, 5))],
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           GestureDetector(
             onTap: !ctrl.isEditMode ? null : () => ctrl.pickAvatar(),
@@ -337,10 +332,11 @@ class _ProfileState extends State<Profile> {
                   width: 90,
                   height: 90,
                   decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white.withOpacity(0.4), width: 3),
+                    borderRadius: decoration.allBorderRadius(16.0),
+                    border: Border.all(color: Colors.white.withOpacity(0.4), width: 1.0),
                   ),
-                  child: ClipOval(
+                  child: ClipRRect(
+                    borderRadius: decoration.allBorderRadius(16.0),
                     child: Obx(() {
                       if (ctrl.avatar.value != null) {
                         return Image.file(ctrl.avatar.value!, fit: BoxFit.cover);
@@ -381,63 +377,57 @@ class _ProfileState extends State<Profile> {
               ],
             ),
           ),
-          const SizedBox(width: 20),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (ctrl.isEditMode)
-                  _buildEditTextField(ctrl.nameController, 'Full Name', isHeader: true)
-                else
-                  Obx(
-                    () => Text(
-                      ctrl.user.value.name.isNotEmpty ? ctrl.user.value.name : 'Your Name',
-                      style: GoogleFonts.poppins(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        shadows: [Shadow(color: Colors.black.withOpacity(0.1), blurRadius: 4, offset: const Offset(0, 2))],
-                      ),
-                    ),
-                  ),
-                const SizedBox(height: 6),
-                if (ctrl.isEditMode)
-                  _buildEditTextField(ctrl.emailController, 'Email Address', isHeader: true, isEmail: true)
-                else
-                  Obx(
-                    () => Text(
-                      ctrl.user.value.email.isNotEmpty ? ctrl.user.value.email : 'your.email@example.com',
-                      style: GoogleFonts.poppins(fontSize: 13, color: Colors.white.withOpacity(0.9), fontWeight: FontWeight.w500),
-                    ),
-                  ),
-                const SizedBox(height: 8),
-                if (!ctrl.isEditMode)
-                  Obx(
-                    () => Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
-                          child: Text(
-                            ctrl.user.value.type,
-                            style: GoogleFonts.poppins(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
-                          child: Text(
-                            '${ctrl.user.value.experienceYears} Years Exp',
-                            style: GoogleFonts.poppins(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-              ],
+          const SizedBox(height: 15),
+          if (ctrl.isEditMode) ...[
+            _buildEditTextField(ctrl.nameController, 'Full Name', isHeader: true),
+            const SizedBox(height: 10),
+            _buildEditTextField(ctrl.emailController, 'Email Address', isHeader: true, isEmail: true),
+          ],
+          if (!ctrl.isEditMode) ...[
+            Obx(
+              () => Text(
+                ctrl.user.value.name.isNotEmpty ? ctrl.user.value.name : 'Your Name',
+                style: GoogleFonts.poppins(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  shadows: [Shadow(color: Colors.black.withOpacity(0.1), blurRadius: 4, offset: const Offset(0, 2))],
+                ),
+              ),
             ),
-          ),
+            Obx(
+              () => Text(
+                ctrl.user.value.email.isNotEmpty ? ctrl.user.value.email : 'your.email@example.com',
+                style: GoogleFonts.poppins(fontSize: 13, color: Colors.white.withOpacity(0.9), fontWeight: FontWeight.w500),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Obx(
+              () => Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
+                    child: Text(
+                      ctrl.user.value.type,
+                      style: GoogleFonts.poppins(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
+                    child: Text(
+                      '${ctrl.user.value.experienceYears} Years Exp',
+                      style: GoogleFonts.poppins(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          const SizedBox(height: 15),
+          _buildLocationStatus(ctrl),
         ],
       ),
     );
@@ -449,7 +439,6 @@ class _ProfileState extends State<Profile> {
       final isError = ctrl.locationStatus.value.contains('Failed') || ctrl.locationStatus.value.contains('denied');
       return AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-        margin: const EdgeInsets.only(bottom: 24),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isSuccess
@@ -550,11 +539,11 @@ class _ProfileState extends State<Profile> {
             ),
           ),
           if (ctrl.isEditMode) ...[
-            _buildEditField('Full Name', ctrl.nameController, Icons.person_2_rounded),
-            _buildEditField('Email Address', ctrl.emailController, Icons.email_rounded, isEmail: true),
-            _buildEditField('Mobile Number', ctrl.mobileController, Icons.phone_outlined, isPhone: true),
-            _buildEditField('Specialty', ctrl.specialtyController, Icons.medical_services_outlined),
-            _buildEditField('Experience (Years)', ctrl.experienceController, Icons.work_history_outlined, isNumber: true),
+            _buildEditField('Full Name', ctrl.nameController),
+            _buildEditField('Email Address', ctrl.emailController, isEmail: true),
+            _buildEditField('Mobile Number', ctrl.mobileController, isPhone: true),
+            _buildEditField('Specialty', ctrl.specialtyController),
+            _buildEditField('Experience (Years)', ctrl.experienceController, isNumber: true),
           ] else ...[
             _buildInfoTile(Icons.phone_outlined, 'Mobile', ctrl.user.value.mobile),
             _buildInfoTile(Icons.medical_services_outlined, 'Specialty', ctrl.user.value.specialty),
@@ -590,8 +579,8 @@ class _ProfileState extends State<Profile> {
             ),
           ),
           if (ctrl.isEditMode) ...[
-            _buildEditField('Clinic Name', ctrl.clinicNameController, Icons.business_outlined),
-            _buildEditField('Clinic Address', ctrl.clinicAddressController, Icons.location_on_outlined, maxLines: 2),
+            _buildEditField('Clinic Name', ctrl.clinicNameController),
+            _buildEditField('Clinic Address', ctrl.clinicAddressController, maxLines: 2),
           ] else ...[
             _buildInfoTile(Icons.business_outlined, 'Clinic Name', ctrl.user.value.clinicName),
             _buildInfoTile(Icons.location_on_outlined, 'Clinic Address', ctrl.user.value.clinicAddress),
@@ -683,50 +672,38 @@ class _ProfileState extends State<Profile> {
     );
   }
 
-  Widget _buildEditField(String label, TextEditingController controller, IconData icon, {bool isPhone = false, bool isNumber = false, bool isEmail = false, int maxLines = 1}) {
+  Widget _buildEditField(String label, TextEditingController controller, {bool isPhone = false, bool isNumber = false, bool isEmail = false, int maxLines = 1}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: decoration.colorScheme.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
-            child: Icon(icon, color: decoration.colorScheme.primary, size: 20),
+          Text(
+            label,
+            style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600], fontWeight: FontWeight.w500),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600], fontWeight: FontWeight.w500),
+          const SizedBox(height: 6),
+          Container(
+            decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(12)),
+            child: TextField(
+              controller: controller,
+              keyboardType: isPhone
+                  ? TextInputType.phone
+                  : isNumber
+                  ? TextInputType.number
+                  : isEmail
+                  ? TextInputType.emailAddress
+                  : TextInputType.text,
+              maxLines: maxLines,
+              style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.w500, fontSize: 14),
+              decoration: InputDecoration(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                border: InputBorder.none,
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: decoration.colorScheme.primary, width: 2),
                 ),
-                const SizedBox(height: 6),
-                Container(
-                  decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(12)),
-                  child: TextField(
-                    controller: controller,
-                    keyboardType: isPhone
-                        ? TextInputType.phone
-                        : isNumber
-                        ? TextInputType.number
-                        : isEmail
-                        ? TextInputType.emailAddress
-                        : TextInputType.text,
-                    maxLines: maxLines,
-                    decoration: InputDecoration(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      border: InputBorder.none,
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: decoration.colorScheme.primary, width: 2),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ],
@@ -736,7 +713,7 @@ class _ProfileState extends State<Profile> {
 
   Widget _buildEditTextField(TextEditingController controller, String hintText, {bool isEmail = false, bool isHeader = false}) {
     return Container(
-      decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(10)),
       child: TextField(
         readOnly: true,
         controller: controller,

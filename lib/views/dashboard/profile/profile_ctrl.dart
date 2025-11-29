@@ -138,6 +138,19 @@ class ProfileCtrl extends GetxController {
   }
 
   void _parseUserData(Map<String, dynamic> data) {
+    List<double> coordinates = [];
+    final locationData = data['location'];
+    if (locationData != null && locationData['coordinates'] is List) {
+      coordinates = (locationData['coordinates'] as List).map<double>((e) {
+        if (e is double) return e;
+        if (e is int) return e.toDouble();
+        if (e is num) return e.toDouble();
+        return 0.0;
+      }).toList();
+    }
+    if (coordinates.isEmpty) {
+      coordinates = [0.0, 0.0];
+    }
     user.value = UserModel(
       id: data['_id'] ?? '',
       name: data['name'] ?? '',
@@ -154,10 +167,7 @@ class ProfileCtrl extends GetxController {
       workingDays: List<Map<String, dynamic>>.from(data['workingDays'] ?? []),
       services: List<Map<String, dynamic>>.from(data['services'] ?? []),
       equipment: List<Map<String, dynamic>>.from(data['equipment'] ?? []),
-      location: LocationModel(
-        address: data['location'] != null ? data['location']['address'] ?? '' : '',
-        coordinates: data['location'] != null ? List<double>.from(data['location']['coordinates'] ?? [0.0, 0.0]) : [0.0, 0.0],
-      ),
+      location: LocationModel(address: data['location'] != null ? data['location']['address'] ?? '' : '', coordinates: coordinates.isNotEmpty ? coordinates : [0.0, 0.0]),
     );
     notificationRange.value = user.value.notificationRange;
   }
@@ -301,7 +311,7 @@ class ProfileCtrl extends GetxController {
         isConfirmPasswordVisible.value = false;
         toaster.success('Password updated successfully');
         if (Get.isDialogOpen ?? false) {
-          Get.back();
+          Get.close(1);
         }
       }
     } catch (e) {
@@ -439,9 +449,7 @@ class ProfileCtrl extends GetxController {
         userData['workingDays'] = availableDays.toList();
         final schedulesMap = <String, dynamic>{};
         daySchedules.forEach((day, slots) {
-          schedulesMap[day] = slots
-              .map((slot) => {'start': '${slot['start']!.hour}:${slot['start']!.minute}', 'end': '${slot['end']!.hour}:${slot['end']!.minute}'})
-              .toList();
+          schedulesMap[day] = slots.map((slot) => {'start': '${slot['start']!.hour}:${slot['start']!.minute}', 'end': '${slot['end']!.hour}:${slot['end']!.minute}'}).toList();
         });
         userData['daySchedules'] = schedulesMap;
         await write(AppSession.userData, userData);
@@ -471,10 +479,7 @@ class ProfileCtrl extends GetxController {
             final fromParts = (slot['from'] as String).split(':');
             final toParts = (slot['to'] as String).split(':');
 
-            return {
-              'start': TimeOfDay(hour: int.parse(fromParts[0]), minute: int.parse(fromParts[1])),
-              'end': TimeOfDay(hour: int.parse(toParts[0]), minute: int.parse(toParts[1])),
-            };
+            return {'start': TimeOfDay(hour: int.parse(fromParts[0]), minute: int.parse(fromParts[1])), 'end': TimeOfDay(hour: int.parse(toParts[0]), minute: int.parse(toParts[1]))};
           }).toList();
           daySchedules[dayName] = timeSlots;
         }

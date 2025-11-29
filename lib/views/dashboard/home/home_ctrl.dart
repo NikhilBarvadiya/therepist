@@ -103,12 +103,12 @@ class HomeCtrl extends GetxController {
         return;
       }
       if (_isOrderPopupOpen) {
-        Get.back();
+        Get.close(1);
       }
       _isOrderPopupOpen = true;
       _currentOrderId = requestId;
       await Get.dialog(
-        AppointmentCountdownPopup(appointment: appointment, onAccept: () => acceptRequest(requestId.toString()), onReject: () => Get.back(), onTimeout: () => _resetPopupState()),
+        AppointmentCountdownPopup(appointment: appointment, onAccept: () => acceptRequest(requestId.toString()), onReject: () => Get.close(1), onTimeout: () => _resetPopupState()),
         barrierDismissible: false,
       );
       _isOrderPopupOpen = false;

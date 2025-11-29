@@ -13,112 +13,105 @@ class Settings extends StatelessWidget {
   Widget build(BuildContext context) {
     final ctrl = Get.find<ProfileCtrl>();
     return Scaffold(
-      backgroundColor: Colors.grey[50],
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverAppBar(
-              elevation: 0,
-              backgroundColor: Colors.white,
-              pinned: true,
-              floating: true,
-              title: Text(
-                'Settings',
-                style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            backgroundColor: decoration.colorScheme.primary,
+            pinned: true,
+            floating: true,
+            title: Text('Settings', style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold)),
+            leading: IconButton(
+              style: ButtonStyle(
+                shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                padding: WidgetStatePropertyAll(const EdgeInsets.all(8)),
+                backgroundColor: WidgetStatePropertyAll(Colors.grey[100]),
               ),
-              leading: IconButton(
-                style: ButtonStyle(
-                  shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                  padding: WidgetStatePropertyAll(const EdgeInsets.all(8)),
-                  backgroundColor: WidgetStatePropertyAll(Colors.grey[100]),
-                ),
-                icon: const Icon(Icons.arrow_back, color: Colors.black87, size: 20),
-                onPressed: () => Get.back(),
+              icon: Icon(Icons.arrow_back, color: decoration.colorScheme.primary, size: 20),
+              onPressed: () => Get.close(1),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSectionHeader('Account Settings'),
+                  const SizedBox(height: 16),
+                  _buildSettingsCard(
+                    children: [
+                      _buildSettingsTile(icon: Icons.lock_outline, title: 'Change Password', subtitle: 'Update your account password', onTap: () => _showChangePasswordDialog(ctrl)),
+                      _buildDivider(),
+                      _buildSettingsTile(
+                        icon: Icons.notifications_active_outlined,
+                        title: 'Notification Range',
+                        subtitle: 'Set distance for receiving orders',
+                        onTap: () => _showNotificationRangeDialog(ctrl),
+                      ),
+                      _buildDivider(),
+                      _buildSettingsTile(
+                        icon: Icons.calendar_today_outlined,
+                        title: 'Clinic Availability',
+                        subtitle: 'Set your working hours and slots',
+                        onTap: () => Get.to(() => const AvailabilitySettings()),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+                  _buildSectionHeader('Security & Privacy'),
+                  const SizedBox(height: 16),
+                  _buildSettingsCard(
+                    children: [
+                      _buildSettingsTile(
+                        icon: Icons.privacy_tip_outlined,
+                        title: 'Privacy Policy',
+                        subtitle: 'How we protect your data',
+                        onTap: () => _showPolicyPage('Privacy Policy', _privacyPolicyContent),
+                      ),
+                      _buildDivider(),
+                      _buildSettingsTile(
+                        icon: Icons.description_outlined,
+                        title: 'Terms & Conditions',
+                        subtitle: 'App usage guidelines',
+                        onTap: () => _showPolicyPage('Terms & Conditions', _termsContent),
+                      ),
+                      _buildDivider(),
+                      _buildSettingsTile(icon: Icons.help_outline, title: 'Help & Support', subtitle: 'Get help using the app', onTap: () => _showPolicyPage('Help & Support', _helpContent)),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+                  _buildSectionHeader('Account Actions'),
+                  const SizedBox(height: 16),
+                  _buildSettingsCard(
+                    children: [
+                      _buildSettingsTile(icon: Icons.logout_outlined, title: 'Logout', subtitle: 'Sign out of your account', color: Colors.orange, onTap: () => _showLogoutDialog(ctrl)),
+                      _buildDivider(),
+                      _buildSettingsTile(
+                        icon: Icons.delete_forever_outlined,
+                        title: 'Delete Account',
+                        subtitle: 'Permanently remove your account',
+                        color: Colors.red,
+                        onTap: () => _showDeleteAccountDialog(ctrl),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+                  _buildSectionHeader('About App'),
+                  const SizedBox(height: 16),
+                  _buildSettingsCard(
+                    children: [
+                      _buildSettingsTile(icon: Icons.info_outline, title: 'Version', subtitle: '1.0.0 (Build 123)', onTap: () {}),
+                      _buildDivider(),
+                      _buildSettingsTile(icon: Icons.update_outlined, title: 'Check for Updates', subtitle: 'Latest version available', onTap: _checkForUpdates),
+                    ],
+                  ),
+                  const SizedBox(height: 40),
+                  _buildAppFooter(),
+                ],
               ),
             ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildSectionHeader('Account Settings'),
-                    const SizedBox(height: 16),
-                    _buildSettingsCard(
-                      children: [
-                        _buildSettingsTile(icon: Icons.lock_outline, title: 'Change Password', subtitle: 'Update your account password', onTap: () => _showChangePasswordDialog(ctrl)),
-                        _buildDivider(),
-                        _buildSettingsTile(
-                          icon: Icons.notifications_active_outlined,
-                          title: 'Notification Range',
-                          subtitle: 'Set distance for receiving orders',
-                          onTap: () => _showNotificationRangeDialog(ctrl),
-                        ),
-                        _buildDivider(),
-                        _buildSettingsTile(
-                          icon: Icons.calendar_today_outlined,
-                          title: 'Clinic Availability',
-                          subtitle: 'Set your working hours and slots',
-                          onTap: () => Get.to(() => const AvailabilitySettings()),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 32),
-                    _buildSectionHeader('Security & Privacy'),
-                    const SizedBox(height: 16),
-                    _buildSettingsCard(
-                      children: [
-                        _buildSettingsTile(
-                          icon: Icons.privacy_tip_outlined,
-                          title: 'Privacy Policy',
-                          subtitle: 'How we protect your data',
-                          onTap: () => _showPolicyPage('Privacy Policy', _privacyPolicyContent),
-                        ),
-                        _buildDivider(),
-                        _buildSettingsTile(
-                          icon: Icons.description_outlined,
-                          title: 'Terms & Conditions',
-                          subtitle: 'App usage guidelines',
-                          onTap: () => _showPolicyPage('Terms & Conditions', _termsContent),
-                        ),
-                        _buildDivider(),
-                        _buildSettingsTile(icon: Icons.help_outline, title: 'Help & Support', subtitle: 'Get help using the app', onTap: () => _showPolicyPage('Help & Support', _helpContent)),
-                      ],
-                    ),
-                    const SizedBox(height: 32),
-                    _buildSectionHeader('Account Actions'),
-                    const SizedBox(height: 16),
-                    _buildSettingsCard(
-                      children: [
-                        _buildSettingsTile(icon: Icons.logout_outlined, title: 'Logout', subtitle: 'Sign out of your account', color: Colors.orange, onTap: () => _showLogoutDialog(ctrl)),
-                        _buildDivider(),
-                        _buildSettingsTile(
-                          icon: Icons.delete_forever_outlined,
-                          title: 'Delete Account',
-                          subtitle: 'Permanently remove your account',
-                          color: Colors.red,
-                          onTap: () => _showDeleteAccountDialog(ctrl),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 32),
-                    _buildSectionHeader('About App'),
-                    const SizedBox(height: 16),
-                    _buildSettingsCard(
-                      children: [
-                        _buildSettingsTile(icon: Icons.info_outline, title: 'Version', subtitle: '1.0.0 (Build 123)', onTap: () {}),
-                        _buildDivider(),
-                        _buildSettingsTile(icon: Icons.update_outlined, title: 'Check for Updates', subtitle: 'Latest version available', onTap: _checkForUpdates),
-                      ],
-                    ),
-                    const SizedBox(height: 40),
-                    _buildAppFooter(),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -257,7 +250,7 @@ class Settings extends StatelessWidget {
                       children: [
                         Expanded(
                           child: OutlinedButton(
-                            onPressed: () => Get.back(),
+                            onPressed: () => Get.close(1),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -380,7 +373,7 @@ class Settings extends StatelessWidget {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () => Get.back(),
+                      onPressed: () => Get.close(1),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -393,7 +386,7 @@ class Settings extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: () {
                         ctrl.updateNotificationRange();
-                        Get.back();
+                        Get.close(1);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: decoration.colorScheme.primary,
@@ -418,22 +411,18 @@ class Settings extends StatelessWidget {
   void _showPolicyPage(String title, String content) {
     Get.to(
       () => Scaffold(
-        backgroundColor: Colors.grey[50],
         appBar: AppBar(
           elevation: 0,
-          backgroundColor: Colors.white,
-          title: Text(
-            title,
-            style: GoogleFonts.poppins(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 20),
-          ),
+          backgroundColor: decoration.colorScheme.primary,
+          title: Text(title, style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 20)),
           leading: IconButton(
             style: ButtonStyle(
               shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
               padding: WidgetStatePropertyAll(const EdgeInsets.all(8)),
               backgroundColor: WidgetStatePropertyAll(Colors.grey[100]),
             ),
-            icon: const Icon(Icons.arrow_back, color: Colors.black87, size: 20),
-            onPressed: () => Get.back(),
+            icon: Icon(Icons.arrow_back, color: decoration.colorScheme.primary, size: 20),
+            onPressed: () => Get.close(1),
           ),
         ),
         body: SingleChildScrollView(
@@ -482,7 +471,7 @@ class Settings extends StatelessWidget {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () => Get.back(),
+                      onPressed: () => Get.close(1),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -547,7 +536,7 @@ class Settings extends StatelessWidget {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () => Get.back(),
+                      onPressed: () => Get.close(1),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
