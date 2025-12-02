@@ -8,9 +8,10 @@ class ServiceModel {
   final int? highCharge;
   final IconData? icon;
   final String? description;
+  final List<String> images;
   bool isActive;
 
-  ServiceModel({required this.id, required this.name, this.charge, this.lowCharge, this.highCharge, this.icon, this.description, required this.isActive});
+  ServiceModel({required this.id, required this.name, this.charge, this.lowCharge, this.highCharge, this.icon, this.description, required this.isActive, required this.images});
 
   factory ServiceModel.fromJson(Map<String, dynamic> json) {
     return ServiceModel(
@@ -21,6 +22,7 @@ class ServiceModel {
       highCharge: json['highCharge'] ?? 0,
       icon: _getIconFromString(json['icon'] ?? 'default'),
       isActive: json['isActive'] ?? true,
+      images: (json['images'] as List<dynamic>? ?? []).map((e) => e.toString()).where((url) => url.isNotEmpty).toList(),
       description: json['description'] ?? 'Professional service with customized treatment plans.',
     );
   }

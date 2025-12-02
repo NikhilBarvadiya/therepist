@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:therepist/utils/decoration.dart';
+import 'package:therepist/utils/network/api_config.dart';
 import 'package:therepist/views/dashboard/equipment/equipment_ctrl.dart';
 import '../../../models/service_model.dart';
 
@@ -183,6 +184,101 @@ class Equipment extends StatelessWidget {
     );
   }
 
+  void _showImagesDialog(BuildContext context, ServiceModel equipment) {
+    if (equipment.images.isEmpty) return;
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.all(20),
+          child: Container(
+            height: 400,
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              equipment.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87),
+                            ),
+                            Text(
+                              "Treatment in action",
+                              style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w400, color: Colors.black87),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(icon: const Icon(Icons.close, size: 22), onPressed: () => Get.close(1)),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: PageView.builder(
+                    itemCount: equipment.images.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            APIConfig.resourceBaseURL + equipment.images[index],
+                            width: double.infinity,
+                            height: double.infinity,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: Colors.grey[200],
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.broken_image, size: 40, color: Colors.grey),
+                                    const SizedBox(height: 8),
+                                    Text('Image not available', style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600])),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                if (equipment.images.length > 1)
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(
+                        equipment.images.length,
+                        (index) => Container(
+                          width: 8,
+                          height: 8,
+                          margin: const EdgeInsets.symmetric(horizontal: 4),
+                          decoration: BoxDecoration(shape: BoxShape.circle, color: index == 0 ? Colors.blue : Colors.grey[300]),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildEquipmentCard(BuildContext context, ServiceModel equipment, EquipmentCtrl ctrl) {
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
@@ -194,66 +290,91 @@ class Equipment extends StatelessWidget {
       ),
       child: Material(
         color: Colors.transparent,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(color: _getEquipmentColor(equipment.name).withOpacity(0.15), borderRadius: BorderRadius.circular(12)),
-                    child: Icon(_getEquipmentIcon(equipment.name), color: _getEquipmentColor(equipment.name), size: 24),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          equipment.name,
-                          style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 4),
-                        _buildEquipmentSpecs(equipment),
-                      ],
-                    ),
-                  ),
-                  _buildStatusBadge(equipment.isActive),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Container(
-                decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(12)),
-                child: Row(
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => _showImagesDialog(context, equipment),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(color: _getEquipmentColor(equipment.name).withOpacity(0.15), borderRadius: BorderRadius.circular(12)),
+                      child: Icon(_getEquipmentIcon(equipment.name), color: _getEquipmentColor(equipment.name), size: 24),
+                    ),
+                    const SizedBox(width: 12),
                     Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        child: Text(
-                          equipment.description ?? 'Professional equipment for therapeutic use.',
-                          style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600], height: 1.4),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            equipment.name,
+                            style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            spacing: 10.0,
+                            children: [
+                              _buildEquipmentSpecs(equipment),
+                              if (equipment.images.isNotEmpty)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(color: Colors.blueGrey.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.photo_library, size: 12, color: Colors.blueGrey),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        '${equipment.images.length}',
+                                        style: GoogleFonts.poppins(fontSize: 11, color: Colors.blueGrey, fontWeight: FontWeight.w500),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                    Transform.scale(
-                      scale: 0.8,
-                      child: Switch(
-                        value: equipment.isActive,
-                        activeColor: decoration.colorScheme.primary,
-                        inactiveTrackColor: Colors.grey[400],
-                        onChanged: (value) => ctrl.toggleServiceStatus(equipment.id, value),
-                      ),
-                    ),
+                    _buildStatusBadge(equipment.isActive),
                   ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 12),
+                Container(
+                  decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(12)),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          child: Text(
+                            equipment.description ?? 'Professional equipment for therapeutic use.',
+                            style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600], height: 1.4),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                      Transform.scale(
+                        scale: 0.8,
+                        child: Switch(
+                          value: equipment.isActive,
+                          activeColor: decoration.colorScheme.primary,
+                          inactiveTrackColor: Colors.grey[400],
+                          onChanged: (value) => ctrl.toggleServiceStatus(equipment.id, value),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
