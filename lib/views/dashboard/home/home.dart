@@ -5,12 +5,16 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:therepist/models/appointment_model.dart';
+import 'package:therepist/models/goal_model.dart';
 import 'package:therepist/utils/decoration.dart';
 import 'package:therepist/utils/helper.dart';
 import 'package:therepist/utils/theme/light.dart';
 import 'package:therepist/views/dashboard/home/home_ctrl.dart';
 import 'package:therepist/views/dashboard/home/appointments/appointments.dart';
 import 'package:therepist/views/dashboard/profile/settings.dart';
+import 'package:therepist/views/dashboard/reward/reward.dart';
+import 'package:therepist/views/dashboard/targets/targets.dart';
+import 'package:therepist/views/dashboard/targets/targets_ctrl.dart';
 
 class Home extends StatelessWidget {
   const Home({super.key});
@@ -32,7 +36,9 @@ class Home extends StatelessWidget {
                     _buildModernAppBar(ctrl),
                     const SliverToBoxAdapter(child: SizedBox(height: 20)),
                     _buildEnhancedBannerSection(ctrl),
-                    const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                    const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                    _buildHealthGoalsSection(),
+                    const SliverToBoxAdapter(child: SizedBox(height: 12)),
                     _buildQuickStatsCards(ctrl),
                     const SliverToBoxAdapter(child: SizedBox(height: 24)),
                     _buildPendingRequestsSection(ctrl),
@@ -143,6 +149,15 @@ class Home extends StatelessWidget {
       ),
       actions: [
         Container(
+          margin: const EdgeInsets.only(right: 8),
+          decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
+          child: IconButton(
+            icon: const Icon(Icons.wallet, color: Colors.white, size: 22),
+            onPressed: () => Get.to(() => const Rewards()),
+            tooltip: 'Rewards',
+          ),
+        ),
+        Container(
           margin: const EdgeInsets.only(right: 16),
           decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
           child: IconButton(
@@ -244,6 +259,259 @@ class Home extends StatelessWidget {
           ),
         );
       }),
+    );
+  }
+
+  Widget _buildHealthGoalsSection() {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Health Goals',
+                  style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700, color: const Color(0xFF1E293B), letterSpacing: -0.5),
+                ),
+                InkWell(
+                  onTap: () => Get.to(() => Targets(), transition: Transition.fadeIn),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(color: decoration.colorScheme.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+                    child: Row(
+                      children: [
+                        Text(
+                          'View All',
+                          style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: decoration.colorScheme.primary),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(Icons.arrow_forward_ios_rounded, size: 12, color: decoration.colorScheme.primary),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            GetBuilder<TargetsCtrl>(
+              init: TargetsCtrl(),
+              builder: (targetCtrl) {
+                if (targetCtrl.isLoading) {
+                  return _buildGoalsShimmer();
+                }
+                final stats = targetCtrl.getStats();
+                final activeTargets = targetCtrl.activeTargets.take(2).toList();
+                return Column(
+                  children: [
+                    _buildGoalsStats(stats),
+                    const SizedBox(height: 20),
+                    if (activeTargets.isNotEmpty) ...[...activeTargets.map((target) => _buildGoalPreviewCard(target)), const SizedBox(height: 8)],
+                    if (activeTargets.isEmpty) _buildNoGoalsCard(),
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGoalsStats(Map<String, dynamic> stats) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [decoration.colorScheme.primary.withOpacity(0.9), decoration.colorScheme.primary.withOpacity(0.7)]),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: decoration.colorScheme.primary.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 5))],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _buildStatItem(icon: Icons.trending_up_rounded, value: '${stats['active']}', label: 'Active Goals', color: Colors.white),
+          Container(height: 40, width: 1, color: Colors.white.withOpacity(0.3)),
+          _buildStatItem(icon: Icons.auto_graph_rounded, value: '${(stats['avgProgress'] * 100).toStringAsFixed(0)}%', label: 'Avg. Progress', color: Colors.white),
+          Container(height: 40, width: 1, color: Colors.white.withOpacity(0.3)),
+          _buildStatItem(icon: Icons.psychology_rounded, value: '${stats['adherence']}', label: 'Patient Adherence', color: Colors.white),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatItem({required IconData icon, required String value, required String label, required Color color}) {
+    return Expanded(
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 16, color: color),
+              const SizedBox(width: 6),
+              Text(
+                value,
+                style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700, color: color),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: GoogleFonts.poppins(fontSize: 10, color: color.withOpacity(0.9), fontWeight: FontWeight.w500),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGoalPreviewCard(GoalModel target) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, 4))],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => Get.to(() => Targets()),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(color: target.color.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+                  child: Icon(target.icon, color: target.color, size: 24),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              target.title,
+                              style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black87),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(color: _getStatusColor(target.status).withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+                            child: Text(
+                              target.status,
+                              style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w600, color: _getStatusColor(target.status)),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text('${target.currentValue.toInt()}/${target.targetValue} ${target.unit}', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600)),
+                      const SizedBox(height: 8),
+                      LinearProgressIndicator(value: target.progress, backgroundColor: Colors.grey.shade200, color: target.color, borderRadius: BorderRadius.circular(4), minHeight: 6),
+                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '${target.progressPercentage}%',
+                            style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: target.color),
+                          ),
+                          Text('${target.remainingDays} days left', style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade600)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNoGoalsCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, 4))],
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(color: decoration.colorScheme.primary.withOpacity(0.1), shape: BoxShape.circle),
+            child: Icon(Icons.flag_rounded, size: 30, color: decoration.colorScheme.primary),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'No Active Goals',
+            style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Set your first health goal to start tracking progress',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade600),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => Get.to(() => Targets()),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: decoration.colorScheme.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.add_rounded, size: 18),
+                  const SizedBox(width: 8),
+                  Text('Create Goal', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600)),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGoalsShimmer() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey.shade200,
+      highlightColor: Colors.grey.shade50,
+      child: Column(
+        children: [
+          Container(
+            height: 120,
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+          ),
+          const SizedBox(height: 20),
+          Container(
+            height: 100,
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+          ),
+        ],
+      ),
     );
   }
 
