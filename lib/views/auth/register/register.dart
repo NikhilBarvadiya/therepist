@@ -122,24 +122,20 @@ class _RegisterState extends State<Register> {
     );
   }
 
-  // Personal Information Step - Keeping your original design
   Widget _buildPersonalInfoStep(RegisterCtrl ctrl, BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Your original personal info section
           _buildLabel(context, 'Name'),
           const SizedBox(height: 8),
           _buildTextField(controller: ctrl.nameCtrl, hint: 'Enter your name', textCapitalization: TextCapitalization.words, icon: Icons.person_2_rounded),
           const SizedBox(height: 16),
-
           _buildLabel(context, 'Email'),
           const SizedBox(height: 8),
           _buildTextField(controller: ctrl.emailCtrl, hint: 'Enter your email', icon: Icons.email_outlined, keyboardType: TextInputType.emailAddress),
           const SizedBox(height: 16),
-
           _buildLabel(context, 'Password'),
           const SizedBox(height: 8),
           Obx(
@@ -153,7 +149,6 @@ class _RegisterState extends State<Register> {
             ),
           ),
           const SizedBox(height: 16),
-
           _buildLabel(context, 'Mobile Number'),
           const SizedBox(height: 8),
           _buildTextField(
@@ -166,7 +161,6 @@ class _RegisterState extends State<Register> {
             inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\+91')), FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))],
           ),
           const SizedBox(height: 16),
-
           _buildLabel(context, 'Address'),
           const SizedBox(height: 8),
           Obx(
@@ -181,46 +175,35 @@ class _RegisterState extends State<Register> {
               onSuffixIconTap: ctrl.isGettingLocation.value ? null : ctrl.retryLocation,
             ),
           ),
-
           const SizedBox(height: 24),
-
-          // Terms section from your original code
           _buildTermsAgreement(context),
         ],
       ),
     );
   }
 
-  // Professional Information Step - Keeping your original design
   Widget _buildProfessionalInfoStep(RegisterCtrl ctrl, BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Your original professional info section
           _buildLabel(context, 'Clinic Name'),
           const SizedBox(height: 8),
           _buildTextField(controller: ctrl.clinicCtrl, hint: 'Enter clinic name', icon: Icons.business_outlined),
           const SizedBox(height: 16),
-
           _buildLabel(context, 'Specialty'),
           const SizedBox(height: 8),
           _buildTextField(controller: ctrl.specialtyCtrl, hint: 'Enter specialty', textCapitalization: TextCapitalization.words, icon: Icons.person_outline),
           const SizedBox(height: 16),
-
           _buildLabel(context, 'Experience (Years)'),
           const SizedBox(height: 8),
           _buildExperienceField(ctrl),
           const SizedBox(height: 16),
-
           _buildLabel(context, 'Practitioner Type'),
           const SizedBox(height: 8),
           _buildTypeField(context, ctrl),
-
           const SizedBox(height: 24),
-
-          // Help text
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -243,14 +226,12 @@ class _RegisterState extends State<Register> {
     );
   }
 
-  // Services Step - Keeping your original design
   Widget _buildServicesStep(RegisterCtrl ctrl, BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Your original services section
           _buildLabel(context, 'Services Offered'),
           const SizedBox(height: 8),
           _buildEnhancedMultiSelectField(
@@ -262,7 +243,6 @@ class _RegisterState extends State<Register> {
             onTap: () => _showServicesSelection(context, ctrl),
           ),
           const SizedBox(height: 16),
-
           _buildLabel(context, 'Available Equipment'),
           const SizedBox(height: 8),
           _buildEnhancedMultiSelectField(
@@ -273,10 +253,7 @@ class _RegisterState extends State<Register> {
             icon: Icons.fitness_center_outlined,
             onTap: () => _showEquipmentSelection(context, ctrl),
           ),
-
           const SizedBox(height: 24),
-
-          // Help text
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(

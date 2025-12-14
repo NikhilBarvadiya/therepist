@@ -217,9 +217,9 @@ class AuthService extends GetxService {
     }
   }
 
-  Future<dynamic> getAppointments({int page = 1, String status = "", String search = ""}) async {
+  Future<dynamic> getAppointments({required String queryString}) async {
     try {
-      final response = await ApiManager().call("${APIIndex.getAppointments}?page=$page&limit=10&status=$status&search=$search&isActive=true", {}, ApiType.get);
+      final response = await ApiManager().call("${APIIndex.getAppointments}?$queryString&isActive=true", {}, ApiType.get);
       if (!response.success || response.data == null) return [];
       return response.data;
     } catch (err) {

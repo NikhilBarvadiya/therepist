@@ -4,9 +4,11 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:therepist/utils/decoration.dart';
+import 'package:therepist/utils/network/api_config.dart';
 import 'package:therepist/views/dashboard/profile/profile_ctrl.dart';
 import 'package:therepist/views/dashboard/profile/settings.dart';
 import 'package:therepist/views/dashboard/profile/ui/availability_settings.dart';
+import 'package:therepist/views/dashboard/profile/ui/edit_profile.dart';
 
 class Profile extends StatefulWidget {
   const Profile({super.key});
@@ -27,6 +29,7 @@ class _ProfileState extends State<Profile> {
             child: CustomScrollView(
               slivers: [
                 SliverAppBar(
+                  toolbarHeight: 65,
                   backgroundColor: decoration.colorScheme.primary,
                   pinned: true,
                   floating: true,
@@ -34,7 +37,7 @@ class _ProfileState extends State<Profile> {
                   title: Text('Profile', style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold)),
                   actions: [
                     IconButton(
-                      tooltip: 'Manage Slots',
+                      tooltip: 'Manage Availability',
                       style: ButtonStyle(
                         shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                         padding: WidgetStatePropertyAll(const EdgeInsets.all(8)),
@@ -43,34 +46,16 @@ class _ProfileState extends State<Profile> {
                       icon: Icon(FeatherIcons.clock, color: Theme.of(context).colorScheme.primary, size: 18),
                       onPressed: () => Get.to(() => AvailabilitySettings()),
                     ),
-                    if (ctrl.isEditMode)
-                      Obx(
-                        () => ctrl.isSaving.value
-                            ? Padding(
-                                padding: const EdgeInsets.all(12.0),
-                                child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: decoration.colorScheme.primary)),
-                              )
-                            : IconButton(
-                                style: ButtonStyle(
-                                  shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                                  padding: WidgetStatePropertyAll(const EdgeInsets.all(8)),
-                                  backgroundColor: WidgetStatePropertyAll(Colors.grey[100]),
-                                ),
-                                icon: Icon(Icons.save, color: decoration.colorScheme.primary, size: 20),
-                                onPressed: ctrl.saveProfile,
-                              ),
+                    IconButton(
+                      style: ButtonStyle(
+                        shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                        padding: WidgetStatePropertyAll(const EdgeInsets.all(8)),
+                        backgroundColor: WidgetStatePropertyAll(Colors.grey[100]),
                       ),
-                    if (!ctrl.isEditMode)
-                      IconButton(
-                        style: ButtonStyle(
-                          shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                          padding: WidgetStatePropertyAll(const EdgeInsets.all(8)),
-                          backgroundColor: WidgetStatePropertyAll(Colors.grey[100]),
-                        ),
-                        icon: Icon(Icons.settings_outlined, color: decoration.colorScheme.primary, size: 20),
-                        onPressed: () => Get.to(() => const Settings()),
-                        tooltip: 'Settings',
-                      ),
+                      icon: Icon(Icons.settings_outlined, color: decoration.colorScheme.primary, size: 20),
+                      onPressed: () => Get.to(() => const Settings()),
+                      tooltip: 'Settings',
+                    ),
                     Padding(
                       padding: const EdgeInsets.only(right: 8.0),
                       child: IconButton(
@@ -79,9 +64,9 @@ class _ProfileState extends State<Profile> {
                           padding: WidgetStatePropertyAll(const EdgeInsets.all(8)),
                           backgroundColor: WidgetStatePropertyAll(Colors.grey[100]),
                         ),
-                        icon: Icon(ctrl.isEditMode ? Icons.close : Icons.edit_outlined, color: ctrl.isEditMode ? Colors.red : decoration.colorScheme.primary, size: 20),
-                        onPressed: ctrl.toggleEditMode,
-                        tooltip: ctrl.isEditMode ? 'Cancel Edit' : 'Edit Profile',
+                        icon: Icon(Icons.edit_outlined, color: decoration.colorScheme.primary, size: 20),
+                        onPressed: () => Get.to(() => EditProfile()),
+                        tooltip: 'Edit Profile',
                       ),
                     ),
                   ],
@@ -97,11 +82,13 @@ class _ProfileState extends State<Profile> {
                         children: [
                           _buildProfileHeader(ctrl),
                           const SizedBox(height: 24),
-                          _buildStatsSection(ctrl),
+                          _buildLocationStatus(ctrl),
                           const SizedBox(height: 24),
                           _buildPersonalInfoSection(ctrl),
                           const SizedBox(height: 24),
                           _buildClinicInfoSection(ctrl),
+                          const SizedBox(height: 24),
+                          _buildStatsSection(ctrl),
                         ],
                       ),
                     ),
@@ -333,113 +320,86 @@ class _ProfileState extends State<Profile> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 15, offset: const Offset(0, 5))],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          GestureDetector(
-            onTap: !ctrl.isEditMode ? null : () => ctrl.pickAvatar(),
-            child: Stack(
-              children: [
-                Container(
-                  width: 90,
-                  height: 90,
-                  decoration: BoxDecoration(
-                    borderRadius: decoration.allBorderRadius(16.0),
-                    border: Border.all(color: Colors.white.withOpacity(0.4), width: 1.0),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: decoration.allBorderRadius(16.0),
-                    child: Obx(() {
-                      if (ctrl.avatar.value != null) {
-                        return Image.file(ctrl.avatar.value!, fit: BoxFit.cover);
-                      }
-                      if (ctrl.user.value.avatar.isNotEmpty) {
-                        return Image.network(
-                          ctrl.user.value.avatar,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              color: Colors.white.withOpacity(0.2),
-                              child: Icon(Icons.person, size: 40, color: Colors.white),
-                            );
-                          },
-                        );
-                      }
+          Container(
+            width: 90,
+            height: 90,
+            decoration: BoxDecoration(
+              borderRadius: decoration.allBorderRadius(16.0),
+              border: Border.all(color: Colors.white.withOpacity(0.4), width: 1.0),
+            ),
+            child: ClipRRect(
+              borderRadius: decoration.allBorderRadius(16.0),
+              child: Obx(() {
+                if (ctrl.user.value.avatar.isNotEmpty) {
+                  return Image.network(
+                    APIConfig.resourceBaseURL + ctrl.user.value.avatar,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
                       return Container(
                         color: Colors.white.withOpacity(0.2),
                         child: Icon(Icons.person, size: 40, color: Colors.white),
                       );
-                    }),
-                  ),
-                ),
-                if (ctrl.isEditMode)
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 2))],
-                      ),
-                      child: Icon(Icons.camera_alt_rounded, size: 18, color: decoration.colorScheme.primary),
+                    },
+                  );
+                }
+                return Container(
+                  color: Colors.white.withOpacity(0.2),
+                  child: Icon(Icons.person, size: 40, color: Colors.white),
+                );
+              }),
+            ),
+          ),
+          const SizedBox(width: 15),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Obx(
+                  () => Text(
+                    ctrl.user.value.name.isNotEmpty ? ctrl.user.value.name : 'Your Name',
+                    style: GoogleFonts.poppins(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      shadows: [Shadow(color: Colors.black.withOpacity(0.1), blurRadius: 4, offset: const Offset(0, 2))],
                     ),
                   ),
+                ),
+                Obx(
+                  () => Text(
+                    ctrl.user.value.email.isNotEmpty ? ctrl.user.value.email : 'your.email@example.com',
+                    style: GoogleFonts.poppins(fontSize: 13, color: Colors.white.withOpacity(0.9), fontWeight: FontWeight.w500),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Obx(
+                  () => Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
+                        child: Text(
+                          ctrl.user.value.type,
+                          style: GoogleFonts.poppins(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
+                        child: Text(
+                          '${ctrl.user.value.experienceYears} Years Exp',
+                          style: GoogleFonts.poppins(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
-          const SizedBox(height: 15),
-          if (ctrl.isEditMode) ...[
-            _buildEditTextField(ctrl.nameController, 'Full Name', isHeader: true),
-            const SizedBox(height: 10),
-            _buildEditTextField(ctrl.emailController, 'Email Address', isHeader: true, isEmail: true),
-          ],
-          if (!ctrl.isEditMode) ...[
-            Obx(
-              () => Text(
-                ctrl.user.value.name.isNotEmpty ? ctrl.user.value.name : 'Your Name',
-                style: GoogleFonts.poppins(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  shadows: [Shadow(color: Colors.black.withOpacity(0.1), blurRadius: 4, offset: const Offset(0, 2))],
-                ),
-              ),
-            ),
-            Obx(
-              () => Text(
-                ctrl.user.value.email.isNotEmpty ? ctrl.user.value.email : 'your.email@example.com',
-                style: GoogleFonts.poppins(fontSize: 13, color: Colors.white.withOpacity(0.9), fontWeight: FontWeight.w500),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Obx(
-              () => Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
-                    child: Text(
-                      ctrl.user.value.type,
-                      style: GoogleFonts.poppins(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
-                    child: Text(
-                      '${ctrl.user.value.experienceYears} Years Exp',
-                      style: GoogleFonts.poppins(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-          const SizedBox(height: 15),
-          _buildLocationStatus(ctrl),
         ],
       ),
     );
@@ -552,18 +512,10 @@ class _ProfileState extends State<Profile> {
               ],
             ),
           ),
-          if (ctrl.isEditMode) ...[
-            _buildEditField('Full Name', ctrl.nameController),
-            _buildEditField('Email Address', ctrl.emailController, isEmail: true),
-            _buildEditField('Mobile Number', ctrl.mobileController, isPhone: true),
-            _buildEditField('Specialty', ctrl.specialtyController),
-            _buildEditField('Experience (Years)', ctrl.experienceController, isNumber: true),
-          ] else ...[
-            _buildInfoTile(Icons.phone_outlined, 'Mobile', ctrl.user.value.mobile),
-            _buildInfoTile(Icons.medical_services_outlined, 'Specialty', ctrl.user.value.specialty),
-            _buildInfoTile(Icons.work_history_outlined, 'Experience', '${ctrl.user.value.experienceYears} Years'),
-            _buildInfoTile(Icons.category_outlined, 'Type', ctrl.user.value.type),
-          ],
+          _buildInfoTile(Icons.phone_outlined, 'Mobile', ctrl.user.value.mobile),
+          _buildInfoTile(Icons.medical_services_outlined, 'Specialty', ctrl.user.value.specialty),
+          _buildInfoTile(Icons.work_history_outlined, 'Experience', '${ctrl.user.value.experienceYears} Years'),
+          _buildInfoTile(Icons.category_outlined, 'Type', ctrl.user.value.type),
         ],
       ),
     );
@@ -592,13 +544,8 @@ class _ProfileState extends State<Profile> {
               ],
             ),
           ),
-          if (ctrl.isEditMode) ...[
-            _buildEditField('Clinic Name', ctrl.clinicNameController),
-            _buildEditField('Clinic Address', ctrl.clinicAddressController, maxLines: 2),
-          ] else ...[
-            _buildInfoTile(Icons.business_outlined, 'Clinic Name', ctrl.user.value.clinicName),
-            _buildInfoTile(Icons.location_on_outlined, 'Clinic Address', ctrl.user.value.clinicAddress),
-          ],
+          _buildInfoTile(Icons.business_outlined, 'Clinic Name', ctrl.user.value.clinicName),
+          _buildInfoTile(Icons.location_on_outlined, 'Clinic Address', ctrl.user.value.clinicAddress),
         ],
       ),
     );
@@ -687,64 +634,6 @@ class _ProfileState extends State<Profile> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildEditField(String label, TextEditingController controller, {bool isPhone = false, bool isNumber = false, bool isEmail = false, int maxLines = 1}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600], fontWeight: FontWeight.w500),
-          ),
-          const SizedBox(height: 6),
-          Container(
-            decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(12)),
-            child: TextField(
-              controller: controller,
-              keyboardType: isPhone
-                  ? TextInputType.phone
-                  : isNumber
-                  ? TextInputType.number
-                  : isEmail
-                  ? TextInputType.emailAddress
-                  : TextInputType.text,
-              maxLines: maxLines,
-              style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.w500, fontSize: 14),
-              decoration: InputDecoration(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                border: InputBorder.none,
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: decoration.colorScheme.primary, width: 2),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEditTextField(TextEditingController controller, String hintText, {bool isEmail = false, bool isHeader = false}) {
-    return Container(
-      decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(10)),
-      child: TextField(
-        readOnly: true,
-        controller: controller,
-        keyboardType: isEmail ? TextInputType.emailAddress : TextInputType.text,
-        style: GoogleFonts.poppins(color: Colors.black, fontWeight: isHeader ? FontWeight.bold : FontWeight.w500, fontSize: 12),
-        decoration: InputDecoration(
-          hintText: hintText,
-          hintStyle: GoogleFonts.poppins(color: Colors.black.withOpacity(0.7), fontSize: 12),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-          isDense: true,
-        ),
       ),
     );
   }

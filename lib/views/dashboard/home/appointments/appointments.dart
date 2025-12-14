@@ -148,15 +148,28 @@ class _AppointmentsState extends State<Appointments> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Appointments', style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold)),
-          Obx(
-            () => Text(
-              '${ctrl.filteredAppointments.length} ${ctrl.filteredAppointments.length == 1 ? 'appointment' : 'appointments'}',
-              style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w400),
-            ),
-          ),
+          Obx(() => Text('${ctrl.totalDocs.value} ${ctrl.totalDocs.value == 1 ? 'appointment' : 'appointments'}', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w400))),
         ],
       ),
       actions: [
+        Obx(() {
+          final hasDateFilter = ctrl.selectedDateRange.value != 'All Time';
+          return IconButton(
+            style: ButtonStyle(
+              shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+              padding: WidgetStatePropertyAll(const EdgeInsets.all(8)),
+              backgroundColor: WidgetStatePropertyAll(Colors.grey[100]),
+            ),
+            icon: Badge(
+              isLabelVisible: hasDateFilter,
+              backgroundColor: Colors.red,
+              smallSize: 8.0,
+              child: Icon(hasDateFilter ? Icons.date_range_rounded : Icons.date_range_outlined, color: decoration.colorScheme.primary, size: 22),
+            ),
+            onPressed: () => ctrl.showDateFilterBottomSheet(context),
+            tooltip: 'Filter by Date',
+          );
+        }),
         Padding(
           padding: const EdgeInsets.only(right: 8.0),
           child: IconButton(
@@ -215,7 +228,7 @@ class _AppointmentsState extends State<Appointments> {
 
   Widget _buildFilterChips(AppointmentsCtrl ctrl) {
     final filters = [
-      {'label': 'All', 'value': '', 'icon': Icons.grid_view_rounded},
+      {'label': 'All', 'value': 'all', 'icon': Icons.grid_view_rounded},
       {'label': 'Pending', 'value': 'pending', 'icon': Icons.pending_outlined},
       {'label': 'Accepted', 'value': 'accepted', 'icon': Icons.check_circle_outline},
       {'label': 'Completed', 'value': 'completed', 'icon': Icons.verified_outlined},
@@ -225,12 +238,13 @@ class _AppointmentsState extends State<Appointments> {
       child: SizedBox(
         height: 50,
         child: ListView.builder(
+          shrinkWrap: true,
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 16),
           itemCount: filters.length,
           itemBuilder: (context, index) {
             final filter = filters[index];
-            final isSelected = ctrl.selectedStatus.value == filter['value'];
+            final isSelected = ctrl.selectedStatus.value.toLowerCase() == filter['value'].toString().toLowerCase();
             return Padding(padding: const EdgeInsets.only(right: 8), child: _buildFilterChip(filter['label'] as String, filter['icon'] as IconData, isSelected, ctrl));
           },
         ),
@@ -242,19 +256,19 @@ class _AppointmentsState extends State<Appointments> {
     return Obx(() {
       if (ctrl.isLoading.value && ctrl.appointments.isEmpty) {
         return _buildAppointmentsShimmer();
-      } else if (ctrl.filteredAppointments.isEmpty) {
+      } else if (ctrl.appointments.isEmpty) {
         return SliverFillRemaining(child: _buildEmptyState(ctrl));
       } else {
         return SliverPadding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
           sliver: SliverList(
             delegate: SliverChildBuilderDelegate((context, index) {
-              if (index == ctrl.filteredAppointments.length) {
+              if (index == ctrl.appointments.length) {
                 return ctrl.hasMore.value ? _buildLoadingItem() : const SizedBox(height: 20);
               }
-              final appointment = ctrl.filteredAppointments[index];
+              final appointment = ctrl.appointments[index];
               return Padding(padding: const EdgeInsets.only(bottom: 12), child: _buildAppointmentCard(appointment, ctrl));
-            }, childCount: ctrl.filteredAppointments.length + 1),
+            }, childCount: ctrl.appointments.length + 1),
           ),
         );
       }
@@ -373,15 +387,13 @@ class _AppointmentsState extends State<Appointments> {
 
   Widget _buildFilterChip(String label, IconData icon, bool isSelected, AppointmentsCtrl ctrl) {
     return FilterChip(
-      avatar: Icon(icon, size: 16, color: isSelected ? Colors.white : Colors.grey[600]),
+      avatar: isSelected ? null : Icon(icon, size: 16, color: isSelected ? Colors.white : Colors.grey[600]),
       label: Text(
         label,
-        style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: isSelected ? Colors.white : Colors.grey[700]),
+        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: isSelected ? Colors.white : Colors.grey[700]),
       ),
       selected: isSelected,
-      onSelected: (selected) {
-        ctrl.filterAppointmentsByStatus(selected ? label.toLowerCase() : '');
-      },
+      onSelected: (selected) => ctrl.filterAppointmentsByStatus(label),
       backgroundColor: Colors.white,
       selectedColor: decoration.colorScheme.primary,
       checkmarkColor: Colors.white,

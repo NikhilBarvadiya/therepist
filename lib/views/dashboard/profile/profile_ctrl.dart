@@ -1,11 +1,8 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart' as dio;
-import 'package:path/path.dart' as path;
 import 'package:therepist/utils/config/session.dart';
-import 'package:therepist/utils/helper.dart';
 import 'package:therepist/utils/storage.dart';
 import 'package:therepist/utils/toaster.dart';
 import 'package:therepist/views/auth/auth_service.dart';
@@ -35,10 +32,8 @@ class ProfileCtrl extends GetxController {
 
   var isLoading = false.obs, isSaving = false.obs, isGettingLocation = false.obs;
   var isCurrentPasswordVisible = false.obs, isNewPasswordVisible = false.obs, isConfirmPasswordVisible = false.obs;
-  var isEditMode = false;
   var coordinates = [0.0, 0.0].obs, locationStatus = 'Fetching location...'.obs;
 
-  var avatar = Rx<File?>(null);
   var notificationRange = 8.obs;
   var availableDays = <String>[].obs;
   var daySchedules = <String, List<Map<String, TimeOfDay>>>{}.obs;
@@ -52,13 +47,6 @@ class ProfileCtrl extends GetxController {
     {'name': 'Sunday', 'key': 'sun'},
   ];
 
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController mobileController = TextEditingController();
-  final TextEditingController specialtyController = TextEditingController();
-  final TextEditingController experienceController = TextEditingController();
-  final TextEditingController clinicNameController = TextEditingController();
-  final TextEditingController clinicAddressController = TextEditingController();
   final TextEditingController currentPasswordController = TextEditingController();
   final TextEditingController newPasswordController = TextEditingController();
   final TextEditingController confirmPasswordController = TextEditingController();
@@ -122,17 +110,16 @@ class ProfileCtrl extends GetxController {
       final response = await _authService.getProfile();
       if (response != null) {
         _parseUserData(response);
-        _updateControllers();
         _loadAvailabilityFromApi(response);
         await write(AppSession.userData, response);
         final homeCtrl = Get.find<HomeCtrl>();
         homeCtrl.getUserProfile();
       } else {
-        await _loadLocalData();
+        await loadLocalData();
       }
     } catch (e) {
       toaster.error('Error loading profile: ${e.toString()}');
-      await _loadLocalData();
+      await loadLocalData();
     } finally {
       isLoading.value = false;
     }
@@ -173,22 +160,11 @@ class ProfileCtrl extends GetxController {
     notificationRange.value = user.value.notificationRange;
   }
 
-  Future<void> _loadLocalData() async {
+  Future<void> loadLocalData() async {
     final userData = await read(AppSession.userData);
     if (userData != null) {
       _parseUserData(userData);
-      _updateControllers();
     }
-  }
-
-  void _updateControllers() {
-    nameController.text = user.value.name;
-    emailController.text = user.value.email;
-    mobileController.text = user.value.mobile;
-    specialtyController.text = user.value.specialty;
-    experienceController.text = user.value.experienceYears.toString();
-    clinicNameController.text = user.value.clinicName;
-    clinicAddressController.text = user.value.clinicAddress;
   }
 
   void setNotificationRange(int range) => notificationRange.value = range;
@@ -198,104 +174,6 @@ class ProfileCtrl extends GetxController {
   void toggleNewPasswordVisibility() => isNewPasswordVisible.toggle();
 
   void toggleConfirmPasswordVisibility() => isConfirmPasswordVisible.toggle();
-
-  void toggleEditMode() {
-    isEditMode = !isEditMode;
-    if (!isEditMode) {
-      _updateControllers();
-    }
-    update();
-  }
-
-  Future<void> pickAvatar() async {
-    final result = await helper.pickImage();
-    if (result != null) {
-      avatar.value = result;
-      dio.FormData formData = dio.FormData.fromMap({});
-      formData.files.add(MapEntry('profileImage', await dio.MultipartFile.fromFile(avatar.value!.path, filename: path.basename(avatar.value!.path))));
-      await _authService.updateProfile(formData);
-    }
-  }
-
-  Future<void> saveProfile() async {
-    if (!_validateForm()) return;
-    try {
-      isSaving.value = true;
-      final request = {
-        'name': nameController.text.trim(),
-        'email': emailController.text.trim(),
-        'mobile': mobileController.text.trim(),
-        'specialty': specialtyController.text.trim(),
-        'experience': int.tryParse(experienceController.text.trim()) ?? 0,
-        'clinicName': clinicNameController.text.trim(),
-        'clinicAddress': clinicAddressController.text.trim(),
-        'notificationRange': notificationRange.value,
-        'type': user.value.type,
-        'address': user.value.location.address,
-        'coordinates': user.value.location.coordinates,
-      };
-      dio.FormData formData = dio.FormData.fromMap(request);
-      final response = await _authService.updateProfile(formData);
-      if (response != null) {
-        await write(AppSession.userData, response);
-        _loadLocalData();
-        isEditMode = false;
-        toaster.success('Profile updated successfully');
-        final homeCtrl = Get.find<HomeCtrl>();
-        homeCtrl.getUserProfile();
-      }
-    } catch (e) {
-      toaster.error('Error updating profile: ${e.toString()}');
-    } finally {
-      isSaving.value = false;
-      update();
-    }
-  }
-
-  bool _validateForm() {
-    if (nameController.text.isEmpty) {
-      toaster.warning('Please enter your name');
-      return false;
-    }
-    if (emailController.text.isEmpty) {
-      toaster.warning('Please enter your email');
-      return false;
-    }
-    if (!GetUtils.isEmail(emailController.text)) {
-      toaster.warning('Please enter a valid email address');
-      return false;
-    }
-    if (mobileController.text.isEmpty) {
-      toaster.warning('Please enter your mobile number');
-      return false;
-    }
-    if (!GetUtils.isPhoneNumber(mobileController.text)) {
-      toaster.warning('Please enter a valid mobile number');
-      return false;
-    }
-    if (specialtyController.text.isEmpty) {
-      toaster.warning('Please enter your specialty');
-      return false;
-    }
-    if (experienceController.text.isEmpty) {
-      toaster.warning('Please enter your experience');
-      return false;
-    }
-    final experience = int.tryParse(experienceController.text);
-    if (experience == null || experience < 0 || experience > 50) {
-      toaster.warning('Please enter valid experience (0-50 years)');
-      return false;
-    }
-    if (clinicNameController.text.isEmpty) {
-      toaster.warning('Please enter your clinic name');
-      return false;
-    }
-    if (clinicAddressController.text.isEmpty) {
-      toaster.warning('Please enter your clinic address');
-      return false;
-    }
-    return true;
-  }
 
   Future<void> changePassword() async {
     if (!_validatePasswordForm()) return;
@@ -400,7 +278,6 @@ class ProfileCtrl extends GetxController {
   Future<void> deleteAccount() async {
     try {
       await clearStorage();
-      helper.launchURL("https://docs.google.com/forms/d/e/1FAIpQLSe_6UsyVHh5hX02k2N-uaAz26Kl9iTim2fTskkyppcthKmlDQ/viewform?pli=1");
       update();
     } catch (e) {
       toaster.error('Error deleting account: ${e.toString()}');
@@ -539,13 +416,6 @@ class ProfileCtrl extends GetxController {
 
   @override
   void onClose() {
-    nameController.dispose();
-    emailController.dispose();
-    mobileController.dispose();
-    specialtyController.dispose();
-    experienceController.dispose();
-    clinicNameController.dispose();
-    clinicAddressController.dispose();
     currentPasswordController.dispose();
     newPasswordController.dispose();
     confirmPasswordController.dispose();

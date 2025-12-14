@@ -49,12 +49,12 @@ class TargetsCtrl extends GetxController {
   Future<void> loadGoals() async {
     _isLoading.value = true;
     try {
-      await Future.delayed(const Duration(milliseconds: 1000));
       await _addSampleGoals();
     } catch (e) {
       toaster.error('Failed to load goals: $e');
     } finally {
       _isLoading.value = false;
+      update();
     }
   }
 

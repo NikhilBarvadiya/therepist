@@ -51,7 +51,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     if (message.notification?.title == "New Request" || message.data['type'] == "Reject Appointment") {
       Future.delayed(const Duration(milliseconds: 500), () async {
         final ctrl = Get.isRegistered<HomeCtrl>() ? Get.find<HomeCtrl>() : Get.put(HomeCtrl());
-        await ctrl.loadAppointments();
+        await ctrl.loadHomeData();
         List<AppointmentModel> appointmentModel = ctrl.pendingAppointments.where((e) => e.id == message.data["requestId"].toString()).toList();
         if (message.notification?.title == 'Reject Appointment') {
           Get.to(() => const Appointments(), transition: Transition.rightToLeft);
@@ -73,7 +73,7 @@ Future<void> terminatedNotification() async {
     }
     Future.delayed(const Duration(milliseconds: 500), () async {
       final ctrl = Get.isRegistered<HomeCtrl>() ? Get.find<HomeCtrl>() : Get.put(HomeCtrl());
-      await ctrl.loadAppointments();
+      await ctrl.loadHomeData();
       List<AppointmentModel> appointmentModel = ctrl.pendingAppointments.where((e) => e.id == initialMessage.data["requestId"].toString()).toList();
       if (initialMessage.notification?.title == 'Reject Appointment') {
         Get.to(() => const Appointments(), transition: Transition.rightToLeft);

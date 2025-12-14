@@ -27,7 +27,7 @@ class HomeCtrl extends GetxController {
   Future<void> loadHomeData() async {
     try {
       isLoading.value = true;
-      await Future.wait([loadAppointments()]);
+      await Future.wait([loadTodayAppointments(), loadPendingAppointments()]);
     } catch (e) {
       toaster.error('Error loading home data: ${e.toString()}');
     } finally {
@@ -35,33 +35,41 @@ class HomeCtrl extends GetxController {
     }
   }
 
-  Future<void> loadAppointments() async {
+  Future<void> loadPendingAppointments() async {
     try {
-      final response = await _authService.getAppointments(page: 1);
-      if (response != null && response['docs'] is List) {
-        final List appointmentsData = response['docs'];
-        todayAppointmentsCount.value = int.tryParse(response['totalDocs'].toString()) ?? 0;
-        appointments.assignAll(appointmentsData.map((item) => AppointmentModel.fromJson(item)).toList());
-        final now = DateTime.now();
-        final today = DateTime(now.year, now.month, now.day);
-        todayAppointments.assignAll(
-          appointments.where((appointment) {
-            final appointmentDate = DateTime(appointment.requestedAt.year, appointment.requestedAt.month, appointment.requestedAt.day);
-            return appointmentDate.isAtSameMomentAs(today);
-          }).toList(),
-        );
-      }
-      final pendingResponse = await _authService.getAppointments(status: 'pending', page: 1);
+      final params = <String, String>{'page': "1", 'limit': '5'};
+      params['status'] = "pending";
+      final queryString = params.entries.map((e) => '${e.key}=${Uri.encodeComponent(e.value)}').join('&');
+      final pendingResponse = await _authService.getAppointments(queryString: queryString);
       if (pendingResponse != null && pendingResponse['docs'] is List) {
         List appointmentsData = pendingResponse['docs'];
         appointmentsData = appointmentsData.where((appointment) => appointment["status"].toLowerCase() == "pending").toList();
         pendingAppointments.assignAll(appointmentsData.map((item) => AppointmentModel.fromJson(item)).toList());
-        if (pendingAppointments.isNotEmpty) {
-          pendingRequestsCount.value = int.tryParse(pendingResponse['totalDocs'].toString()) ?? 0;
-        }
+        pendingRequestsCount.value = int.tryParse(pendingResponse['totalDocs'].toString()) ?? 0;
       }
     } catch (e) {
       toaster.error('Error loading appointments: ${e.toString()}');
+    }
+  }
+
+  Future loadTodayAppointments() async {
+    final now = DateTime.now();
+    final params = <String, String>{'page': "1", 'limit': '5'};
+    params['dateFrom'] = params['dateTo'] = now.toIso8601String();
+    final queryString = params.entries.map((e) => '${e.key}=${Uri.encodeComponent(e.value)}').join('&');
+    final response = await _authService.getAppointments(queryString: queryString);
+    if (response != null && response['docs'] is List) {
+      final List appointmentsData = response['docs'];
+      todayAppointmentsCount.value = int.tryParse(response['totalDocs'].toString()) ?? 0;
+      appointments.assignAll(appointmentsData.map((item) => AppointmentModel.fromJson(item)).toList());
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      todayAppointments.assignAll(
+        appointments.where((appointment) {
+          final appointmentDate = DateTime(appointment.requestedAt.year, appointment.requestedAt.month, appointment.requestedAt.day);
+          return appointmentDate.isAtSameMomentAs(today);
+        }).toList(),
+      );
     }
   }
 
@@ -84,7 +92,7 @@ class HomeCtrl extends GetxController {
         pendingAppointments.removeWhere((request) => request.id == requestId);
         pendingRequestsCount.value -= 1;
         toaster.success('Request accepted successfully');
-        await loadAppointments();
+        await loadHomeData();
       }
     } catch (e) {
       toaster.error('Error accepting request: ${e.toString()}');
