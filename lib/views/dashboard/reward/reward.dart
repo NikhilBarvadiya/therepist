@@ -880,10 +880,10 @@ class _RewardsState extends State<Rewards> {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
+          TextButton(onPressed: () => Get.close(1), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () async {
-              Get.back();
+              Get.close(1);
               final success = await rewardCtrl.redeemReward(reward);
               if (success) {}
             },
@@ -901,10 +901,10 @@ class _RewardsState extends State<Rewards> {
         title: Text('Cancel Redemption', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
         content: Text('Are you sure you want to cancel this reward redemption?', style: GoogleFonts.poppins()),
         actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('No')),
+          TextButton(onPressed: () => Get.close(1), child: const Text('No')),
           ElevatedButton(
             onPressed: () {
-              Get.back();
+              Get.close(1);
               rewardCtrl.cancelTransaction(transaction.id);
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),

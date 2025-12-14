@@ -590,7 +590,7 @@ class Register extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFE5E7EB)),
       ),
-      child: IconButton(onPressed: () => Get.back(), icon: const Icon(Icons.arrow_back_ios_new, size: 18), color: const Color(0xFF111827)),
+      child: IconButton(onPressed: () => Get.close(1), icon: const Icon(Icons.arrow_back_ios_new, size: 18), color: const Color(0xFF111827)),
     );
   }
 
