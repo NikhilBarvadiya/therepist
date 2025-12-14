@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:therepist/utils/toaster.dart';
@@ -19,21 +20,20 @@ class MultiSelectBottomSheet extends StatefulWidget {
 class _MultiSelectBottomSheetState extends State<MultiSelectBottomSheet> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  Timer? _searchDebounce;
 
   List<ServiceModel> _tempSelected = [], _filteredItems = [];
   final List<ServiceModel> _items = [];
 
   int _page = 1;
-  bool _isLoading = false, _hasNextPage = true;
+  bool _isLoading = false, _hasNextPage = true, _isInitialLoading = true;
   String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     _tempSelected = List.from(widget.selectedItems);
-    _filteredItems = [];
     _fetchItems();
-    _searchController.addListener(_filterItems);
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 100 && !_isLoading && _hasNextPage) {
         _fetchItems();
@@ -41,41 +41,70 @@ class _MultiSelectBottomSheetState extends State<MultiSelectBottomSheet> {
     });
   }
 
-  Future<void> _fetchItems() async {
+  Future<void> _fetchItems({bool reset = false}) async {
     if (_isLoading) return;
-    _isLoading = true;
+    setState(() {
+      _isLoading = true;
+      if (reset) {
+        _isInitialLoading = true;
+        _page = 1;
+        _items.clear();
+        _filteredItems.clear();
+      }
+    });
     try {
       final authService = Get.find<AuthService>();
       final response = widget.itemType == 'services' ? await authService.getServices(page: _page, search: _searchQuery) : await authService.getEquipment(page: _page, search: _searchQuery);
-      if (response == null) return;
+      if (response == null) {
+        setState(() {
+          _isLoading = false;
+          _isInitialLoading = false;
+          _hasNextPage = false;
+        });
+        return;
+      }
       final List<ServiceModel> newItems = (response['docs'] as List).map((e) => ServiceModel.fromJson(e)).toList();
       setState(() {
+        if (reset) {
+          _items.clear();
+        }
         _items.addAll(newItems);
-        _filteredItems = _searchController.text.isEmpty ? List.from(_items) : _items.where((item) => item.name.toLowerCase().contains(_searchController.text.toLowerCase())).toList();
+        _filteredItems = List.from(_items);
         _hasNextPage = response['hasNextPage'] ?? false;
-        _page++;
+        if (newItems.isNotEmpty) {
+          _page++;
+        }
+        _isInitialLoading = false;
       });
     } catch (e) {
       toaster.error('Error: ${e.toString()}');
+      setState(() {
+        _isInitialLoading = false;
+      });
     } finally {
-      _isLoading = false;
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
-  void _filterItems() {
-    final query = _searchController.text.toLowerCase();
-    setState(() {
-      _searchQuery = query;
-      if (query.isEmpty) {
-        _filteredItems = List.from(_items);
-      } else {
-        _filteredItems = _items.where((item) => item.name.toLowerCase().contains(query)).toList();
+  void _onSearchChanged(String query) {
+    if (_searchDebounce?.isActive ?? false) {
+      _searchDebounce?.cancel();
+    }
+    _searchDebounce = Timer(const Duration(milliseconds: 500), () {
+      if (_searchQuery != query.trim()) {
+        _searchQuery = query.trim();
+        _fetchItems(reset: true);
       }
     });
-    if (query.isNotEmpty && query != _searchQuery) {
-      _page = 1;
-      _hasNextPage = true;
-      _fetchItems();
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    if (_searchQuery.isNotEmpty) {
+      _searchQuery = '';
+      _fetchItems(reset: true);
     }
   }
 
@@ -92,12 +121,6 @@ class _MultiSelectBottomSheetState extends State<MultiSelectBottomSheet> {
   void _confirmSelection() {
     widget.onSelectionChanged(_tempSelected);
     Navigator.pop(context);
-  }
-
-  void _clearSelection() {
-    setState(() {
-      _tempSelected.clear();
-    });
   }
 
   String _getChargeDisplay(ServiceModel item) {
@@ -127,6 +150,7 @@ class _MultiSelectBottomSheetState extends State<MultiSelectBottomSheet> {
   void dispose() {
     _searchController.dispose();
     _scrollController.dispose();
+    _searchDebounce?.cancel();
     super.dispose();
   }
 
@@ -142,8 +166,8 @@ class _MultiSelectBottomSheetState extends State<MultiSelectBottomSheet> {
           children: [
             _buildHeader(),
             _buildSearchField(),
-            _buildSelectionInfo(),
-            Expanded(child: _buildListView()),
+            Expanded(child: _buildContent()),
+            if (_tempSelected.isNotEmpty) _buildBottomSummary(),
             _buildFooterButtons(),
           ],
         ),
@@ -172,16 +196,6 @@ class _MultiSelectBottomSheetState extends State<MultiSelectBottomSheet> {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF111827)),
             ),
           ),
-          if (_tempSelected.isNotEmpty) ...[
-            TextButton(
-              onPressed: _clearSelection,
-              style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6)),
-              child: Text(
-                'Clear',
-                style: TextStyle(fontSize: 14, color: const Color(0xFFEF4444), fontWeight: FontWeight.w500),
-              ),
-            ),
-          ],
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(color: const Color(0xFF10B981).withOpacity(0.1), borderRadius: BorderRadius.circular(16)),
@@ -198,127 +212,120 @@ class _MultiSelectBottomSheetState extends State<MultiSelectBottomSheet> {
   Widget _buildSearchField() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      child: Container(
-        decoration: BoxDecoration(
-          color: const Color(0xFFF9FAFB),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFE5E7EB)),
-        ),
-        child: TextField(
-          controller: _searchController,
-          decoration: InputDecoration(
-            hintText: 'Search ${widget.itemType}...',
-            border: InputBorder.none,
-            prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF6B7280), size: 20),
-            suffixIcon: _searchController.text.isNotEmpty
-                ? IconButton(
-                    icon: const Icon(Icons.clear_rounded, size: 18, color: Color(0xFF6B7280)),
-                    onPressed: () {
-                      _searchController.clear();
-                      _filterItems();
-                    },
-                  )
-                : null,
-            hintStyle: const TextStyle(color: Color(0xFF6B7280)),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          ),
+      child: TextField(
+        controller: _searchController,
+        onChanged: _onSearchChanged,
+        decoration: InputDecoration(
+          hintText: 'Search ${widget.itemType}...',
+          border: InputBorder.none,
+          prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF6B7280), size: 20),
+          suffixIcon: _searchController.text.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear_rounded, size: 18, color: Color(0xFF6B7280)),
+                  onPressed: _clearSearch,
+                )
+              : null,
+          hintStyle: const TextStyle(color: Color(0xFF6B7280)),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
       ),
     );
   }
 
-  Widget _buildSelectionInfo() {
-    if (_tempSelected.isEmpty) return const SizedBox();
-    final totalCharges = _tempSelected.fold<double>(0, (sum, item) {
-      return sum + (item.charge ?? item.lowCharge ?? 0).toDouble();
-    });
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF0FDF4),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFF10B981).withOpacity(0.2)),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.attach_money_rounded, size: 16, color: const Color(0xFF10B981)),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${_tempSelected.length} item${_tempSelected.length > 1 ? 's' : ''} selected',
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF065F46)),
-                        ),
-                        if (totalCharges > 0) Text('Estimated total: ₹${totalCharges.toStringAsFixed(0)}', style: const TextStyle(fontSize: 11, color: Color(0xFF047857))),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+  Widget _buildContent() {
+    if (_isInitialLoading) {
+      return _buildShimmerList();
+    }
+
+    if (_filteredItems.isEmpty && !_isLoading) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.search_off_rounded, size: 64, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              _searchQuery.isEmpty ? 'No ${widget.itemType} available' : 'No results found',
+              style: const TextStyle(fontSize: 16, color: Color(0xFF6B7280), fontWeight: FontWeight.w500),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildListView() {
-    if (_filteredItems.isEmpty) {
-      if (_isLoading) {
-        return const Center(
-          child: Padding(padding: EdgeInsets.all(16.0), child: CircularProgressIndicator()),
-        );
-      }
-      if (!_isLoading) {
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.search_off_rounded, size: 64, color: const Color(0xFF9CA3AF)),
-              const SizedBox(height: 16),
-              Text(
-                _searchQuery.isEmpty ? 'No ${widget.itemType} available' : 'No results found',
-                style: const TextStyle(fontSize: 16, color: Color(0xFF6B7280), fontWeight: FontWeight.w500),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _searchQuery.isEmpty ? 'Check back later for new ${widget.itemType}' : 'Try searching with different keywords',
-                style: const TextStyle(fontSize: 14, color: Color(0xFF9CA3AF)),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        );
-      }
+            const SizedBox(height: 8),
+            Text(
+              _searchQuery.isEmpty ? 'Check back later for new ${widget.itemType}' : 'Try searching with different keywords',
+              style: const TextStyle(fontSize: 14, color: Color(0xFF9CA3AF)),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
     }
 
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      itemCount: _filteredItems.length + (_isLoading ? 1 : 0) + (_hasNextPage ? 1 : 0),
+      itemCount: _filteredItems.length + (_hasNextPage ? 1 : 0),
       itemBuilder: (context, index) {
-        if (index == _filteredItems.length) {
-          if (_isLoading) {
-            return const Center(
-              child: Padding(padding: EdgeInsets.all(16.0), child: CircularProgressIndicator()),
-            );
+        if (index >= _filteredItems.length) {
+          if (_hasNextPage && !_isLoading) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _fetchItems();
+            });
           }
-          if (_hasNextPage) {
-            return const SizedBox();
-          }
-          return const SizedBox();
+          return _hasNextPage
+              ? const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              : const SizedBox();
         }
-        if (_filteredItems.isEmpty) return const SizedBox();
+
         final item = _filteredItems[index];
         final isSelected = _tempSelected.contains(item);
         return _buildListItem(item, isSelected);
+      },
+    );
+  }
+
+  Widget _buildShimmerList() {
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      itemCount: 10,
+      itemBuilder: (context, index) {
+        return Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
+          ),
+          child: ListTile(
+            leading: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(8)),
+            ),
+            title: Container(
+              height: 14,
+              width: 120,
+              decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(4)),
+            ),
+            subtitle: Container(
+              height: 12,
+              width: 80,
+              margin: const EdgeInsets.only(top: 6),
+              decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(4)),
+            ),
+            trailing: Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: const Color(0xFFD1D5DB)),
+              ),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          ),
+        );
       },
     );
   }
@@ -387,6 +394,32 @@ class _MultiSelectBottomSheetState extends State<MultiSelectBottomSheet> {
         ),
         onTap: () => _toggleSelection(item),
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      ),
+    );
+  }
+
+  Widget _buildBottomSummary() {
+    final totalCharges = _tempSelected.fold<double>(0, (sum, item) => sum + (item.charge ?? item.lowCharge ?? 0));
+    return Container(
+      height: 64,
+      padding: const EdgeInsets.symmetric(horizontal: 25),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Color(0xFFE5E7EB))),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            '${_tempSelected.length} item${_tempSelected.length > 1 ? 's' : ''} selected',
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF374151)),
+          ),
+          const Spacer(),
+          Text(
+            '₹${totalCharges.toStringAsFixed(0)}',
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF111827)),
+          ),
+        ],
       ),
     );
   }

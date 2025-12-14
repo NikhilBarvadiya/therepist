@@ -6,6 +6,15 @@ class APIIndex {
   /// Auth
   static const String register = 'doctor/register';
   static const String login = 'doctor/login';
+
+  /// Verification
+  static const String otpSend = 'doctor/otp/send';
+  static const String otpVerify = 'doctor/otp/verify';
+
+  /// Forgot Password
+  static const String forgotPassword = 'doctor/forgot-password';
+
+  /// Profile
   static const String getProfile = 'doctor/get-profile';
   static const String updateProfile = 'doctor/update-profile';
   static const String updatePassword = 'doctor/change-password';

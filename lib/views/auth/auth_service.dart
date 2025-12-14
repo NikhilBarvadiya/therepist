@@ -18,10 +18,59 @@ class AuthService extends GetxService {
       }
       await write(AppSession.token, response.data["accessToken"]);
       await write(AppSession.userData, response.data["doctor"]);
-      Get.toNamed(AppRouteNames.dashboard);
+      if (response.data["isEmailVerified"] != true) {
+        await sendOTP({'email': request["email"]});
+        Get.toNamed(AppRouteNames.otp, arguments: request["email"].toString());
+      } else {
+        Get.toNamed(AppRouteNames.dashboard);
+      }
     } catch (err) {
       toaster.error(err.toString());
       return;
+    }
+  }
+
+  Future<dynamic> sendOTP(Map<String, dynamic> request) async {
+    try {
+      final response = await ApiManager().call(APIIndex.otpSend, request, ApiType.post);
+      if (!response.success || response.data == null) {
+        toaster.warning(response.message ?? 'Failed to send OTP');
+        return null;
+      }
+      return response.data;
+    } catch (err) {
+      toaster.error(err.toString());
+      return null;
+    }
+  }
+
+  Future<dynamic> verifyOTP(Map<String, dynamic> request) async {
+    try {
+      final response = await ApiManager().call(APIIndex.otpVerify, request, ApiType.post);
+      if (!response.success || response.data == null) {
+        toaster.warning(response.message ?? 'Failed to verify OTP');
+        return null;
+      }
+      await write(AppSession.userData, response.data["doctor"]);
+      Get.toNamed(AppRouteNames.dashboard);
+      return response.data;
+    } catch (err) {
+      toaster.error(err.toString());
+      return null;
+    }
+  }
+
+  Future<dynamic> forgotPassword(Map<String, dynamic> request) async {
+    try {
+      final response = await ApiManager().call(APIIndex.forgotPassword, request, ApiType.post);
+      if (!response.success) {
+        toaster.warning(response.message ?? 'Failed to send reset link');
+        return null;
+      }
+      return true;
+    } catch (err) {
+      toaster.error(err.toString());
+      return null;
     }
   }
 

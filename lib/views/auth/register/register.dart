@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:therepist/utils/decoration.dart';
 import 'package:therepist/views/auth/register/register_ctrl.dart';
@@ -49,7 +50,7 @@ class Register extends StatelessWidget {
                       const SizedBox(height: 16),
                       _buildLabel(context, 'Name'),
                       const SizedBox(height: 8),
-                      _buildTextField(controller: ctrl.nameCtrl, hint: 'Enter your name', icon: Icons.person_2_rounded),
+                      _buildTextField(controller: ctrl.nameCtrl, hint: 'Enter your name', textCapitalization: TextCapitalization.words, icon: Icons.person_2_rounded),
                       const SizedBox(height: 16),
                       _buildLabel(context, 'Email'),
                       const SizedBox(height: 8),
@@ -70,11 +71,30 @@ class Register extends StatelessWidget {
                       const SizedBox(height: 16),
                       _buildLabel(context, 'Mobile Number'),
                       const SizedBox(height: 8),
-                      _buildTextField(controller: ctrl.mobileCtrl, hint: 'Enter your mobile number', icon: Icons.phone_outlined, keyboardType: TextInputType.phone, maxLength: 10),
+                      _buildTextField(
+                        controller: ctrl.mobileCtrl,
+                        hint: '+91 Enter your mobile number',
+                        icon: Icons.phone_outlined,
+                        maxLength: 10,
+                        keyboardType: TextInputType.phone,
+                        autofillHints: const [AutofillHints.telephoneNumber],
+                        inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\+91')), FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))],
+                      ),
                       const SizedBox(height: 16),
                       _buildLabel(context, 'Address'),
                       const SizedBox(height: 8),
-                      _buildTextField(controller: ctrl.addressCtrl, hint: 'Enter your address', icon: Icons.home_outlined, maxLines: 2),
+                      Obx(
+                        () => _buildTextField(
+                          controller: ctrl.addressCtrl,
+                          hint: 'Enter your address',
+                          icon: Icons.home_outlined,
+                          maxLines: 3,
+                          textCapitalization: TextCapitalization.words,
+                          suffixLoading: ctrl.isGettingLocation.value,
+                          suffixIcon: ctrl.isGettingLocation.value ? Icons.location_searching : Icons.location_on,
+                          onSuffixIconTap: ctrl.isGettingLocation.value ? null : ctrl.retryLocation,
+                        ),
+                      ),
                       const SizedBox(height: 24),
                       _buildSectionHeader('Professional Information'),
                       const SizedBox(height: 16),
@@ -84,7 +104,7 @@ class Register extends StatelessWidget {
                       const SizedBox(height: 16),
                       _buildLabel(context, 'Specialty'),
                       const SizedBox(height: 8),
-                      _buildTextField(controller: ctrl.specialtyCtrl, hint: 'Enter specialty', icon: Icons.person_outline),
+                      _buildTextField(controller: ctrl.specialtyCtrl, hint: 'Enter specialty', textCapitalization: TextCapitalization.words, icon: Icons.person_outline),
                       const SizedBox(height: 16),
                       _buildLabel(context, 'Experience (Years)'),
                       const SizedBox(height: 8),
@@ -117,18 +137,10 @@ class Register extends StatelessWidget {
                         icon: Icons.fitness_center_outlined,
                         onTap: () => _showEquipmentSelection(context, ctrl),
                       ),
-                      Obx(() {
-                        if (ctrl.selectedServices.isNotEmpty || ctrl.selectedEquipment.isNotEmpty) {
-                          return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const SizedBox(height: 16), _buildSelectedItemsPreview(ctrl)]);
-                        }
-                        return const SizedBox();
-                      }),
-                      const SizedBox(height: 24),
-                      _buildTermsAgreement(context),
-                      const SizedBox(height: 24),
-                      _buildLocationStatus(ctrl),
                       const SizedBox(height: 24),
                       Obx(() => _buildRegisterButton(ctrl, context)),
+                      const SizedBox(height: 24),
+                      _buildTermsAgreement(context),
                       const SizedBox(height: 24),
                       _buildLoginRedirect(context, ctrl),
                       const SizedBox(height: 16),
@@ -146,9 +158,11 @@ class Register extends StatelessWidget {
 
   Widget _buildExperienceField(RegisterCtrl ctrl) {
     return TextFormField(
+      maxLength: 2,
       controller: ctrl.experienceCtrl,
       keyboardType: TextInputType.number,
       decoration: InputDecoration(
+        counterText: '',
         hintText: 'Enter years of experience',
         prefixIcon: const Icon(Icons.work_history_rounded, size: 20, color: Color(0xFF10B981)),
         suffixText: 'years',
@@ -275,73 +289,6 @@ class Register extends StatelessWidget {
     );
   }
 
-  Widget _buildLocationStatus(RegisterCtrl ctrl) {
-    return Obx(
-      () => Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: ctrl.locationStatus.value.contains('successfully')
-              ? const Color(0xFFD1FAE5)
-              : ctrl.locationStatus.value.contains('Failed') || ctrl.locationStatus.value.contains('denied')
-              ? const Color(0xFFFEE2E2)
-              : const Color(0xFFFEF3C7),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: ctrl.locationStatus.value.contains('successfully')
-                ? const Color(0xFF10B981)
-                : ctrl.locationStatus.value.contains('Failed') || ctrl.locationStatus.value.contains('denied')
-                ? const Color(0xFFEF4444)
-                : const Color(0xFFF59E0B),
-            width: 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              ctrl.locationStatus.value.contains('successfully')
-                  ? Icons.check_circle_rounded
-                  : ctrl.locationStatus.value.contains('Failed') || ctrl.locationStatus.value.contains('denied')
-                  ? Icons.error_outline_rounded
-                  : Icons.location_searching_rounded,
-              color: ctrl.locationStatus.value.contains('successfully')
-                  ? const Color(0xFF10B981)
-                  : ctrl.locationStatus.value.contains('Failed') || ctrl.locationStatus.value.contains('denied')
-                  ? const Color(0xFFEF4444)
-                  : const Color(0xFFF59E0B),
-              size: 20,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    ctrl.isGettingLocation.value ? 'Getting Location...' : 'Location Status',
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF374151)),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    ctrl.locationStatus.value,
-                    style: TextStyle(fontSize: 11, color: const Color(0xFF6B7280), fontWeight: ctrl.locationStatus.value.contains('successfully') ? FontWeight.w600 : FontWeight.normal),
-                  ),
-                ],
-              ),
-            ),
-            if (ctrl.locationStatus.value.contains('Failed') || ctrl.locationStatus.value.contains('denied'))
-              TextButton(
-                onPressed: ctrl.retryLocation,
-                style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), minimumSize: Size.zero),
-                child: const Text(
-                  'Retry',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF2563EB)),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildSectionHeader(String text) {
     return Text(
       text,
@@ -362,10 +309,14 @@ class Register extends StatelessWidget {
     required IconData icon,
     TextInputType? keyboardType,
     bool obscureText = false,
+    bool suffixLoading = false,
     IconData? suffixIcon,
     VoidCallback? onSuffixIconTap,
     int? maxLength,
     int maxLines = 1,
+    Iterable<String>? autofillHints,
+    List<TextInputFormatter>? inputFormatters,
+    TextCapitalization textCapitalization = TextCapitalization.none,
   }) {
     return TextFormField(
       controller: controller,
@@ -374,15 +325,23 @@ class Register extends StatelessWidget {
       maxLength: maxLength,
       maxLines: maxLines,
       minLines: 1,
+      inputFormatters: inputFormatters,
+      textCapitalization: textCapitalization,
+      autofillHints: autofillHints,
+      style: TextStyle(fontSize: 14, letterSpacing: .5),
       decoration: InputDecoration(
         hintText: hint,
-        prefixIcon: Icon(icon, size: 20, color: const Color(0xFF10B981)),
-        suffixIcon: suffixIcon != null
-            ? IconButton(
-                onPressed: onSuffixIconTap,
-                icon: Icon(suffixIcon, size: 20, color: const Color(0xFF10B981)),
-              ).paddingOnly(right: 5)
+        hintStyle: TextStyle(fontSize: 12, letterSpacing: .5, color: Colors.grey.shade400),
+        prefixIcon: Icon(icon, size: 20, color: decoration.colorScheme.primary),
+        suffixIcon: suffixIcon != null || suffixLoading
+            ? suffixLoading
+                  ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(decoration.colorScheme.primary))).paddingOnly(right: 15)
+                  : IconButton(
+                      onPressed: onSuffixIconTap,
+                      icon: Icon(suffixIcon, size: 20, color: decoration.colorScheme.primary),
+                    ).paddingOnly(right: 5)
             : null,
+        suffixIconConstraints: suffixLoading == true ? const BoxConstraints(minWidth: 0, minHeight: 0, maxWidth: 50, maxHeight: 24) : null,
         filled: true,
         fillColor: const Color(0xFFF9FAFB),
         counterText: '',
@@ -396,7 +355,7 @@ class Register extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF10B981), width: 2),
+          borderSide: BorderSide(color: decoration.colorScheme.primary, width: 1),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
@@ -450,50 +409,6 @@ class Register extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildSelectedItemsPreview(RegisterCtrl ctrl) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF0FDF4),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF10B981).withOpacity(0.2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.check_circle_rounded, color: const Color(0xFF10B981), size: 16),
-              const SizedBox(width: 8),
-              Text(
-                'Selected Items',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: const Color(0xFF065F46)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          if (ctrl.selectedServices.isNotEmpty) ...[
-            Text(
-              'Services: ${ctrl.selectedServices.map((e) => e.name).join(', ')}',
-              style: TextStyle(fontSize: 12, color: const Color(0xFF047857)),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-          if (ctrl.selectedEquipment.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(
-              'Equipment: ${ctrl.selectedEquipment.map((e) => e.name).join(', ')}',
-              style: TextStyle(fontSize: 12, color: const Color(0xFF047857)),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ],
       ),
     );
   }
@@ -584,13 +499,18 @@ class Register extends StatelessWidget {
 
   Widget _buildBackButton() {
     return Container(
+      height: 45,
+      width: 45,
       margin: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
+      child: IconButton(
+        style: ButtonStyle(
+          shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+          backgroundColor: WidgetStatePropertyAll(Colors.grey[100]),
+        ),
+        onPressed: () => Get.close(1),
+        icon: const Icon(Icons.arrow_back_ios_new, size: 18),
+        color: const Color(0xFF111827),
       ),
-      child: IconButton(onPressed: () => Get.close(1), icon: const Icon(Icons.arrow_back_ios_new, size: 18), color: const Color(0xFF111827)),
     );
   }
 

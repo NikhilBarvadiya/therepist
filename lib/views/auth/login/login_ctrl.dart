@@ -8,7 +8,7 @@ import 'package:therepist/views/auth/auth_service.dart';
 class LoginCtrl extends GetxController {
   final emailCtrl = TextEditingController();
   final passwordCtrl = TextEditingController();
-  var isLoading = false.obs, isPasswordVisible = false.obs;
+  var isLoading = false.obs, isForgotPasswordLoading = false.obs, isPasswordVisible = false.obs;
 
   AuthService get authService => Get.find<AuthService>();
 
@@ -36,6 +36,28 @@ class LoginCtrl extends GetxController {
       emailCtrl.clear();
       passwordCtrl.clear();
       isLoading.value = false;
+    }
+  }
+
+  Future<void> forgotPassword() async {
+    if (emailCtrl.text.isEmpty) {
+      toaster.warning('Please enter your email');
+      return;
+    }
+    if (!GetUtils.isEmail(emailCtrl.text.trim())) {
+      toaster.warning('Please enter a valid email');
+      return;
+    }
+    isForgotPasswordLoading.value = true;
+    try {
+      final response = await authService.forgotPassword({'email': emailCtrl.text.trim()});
+      if (response != null) {
+        toaster.success('Password reset link sent to your email');
+      }
+    } catch (e) {
+      toaster.error('Failed to send reset link: ${e.toString()}');
+    } finally {
+      isForgotPasswordLoading.value = false;
     }
   }
 

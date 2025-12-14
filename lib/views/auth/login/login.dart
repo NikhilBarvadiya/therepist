@@ -102,6 +102,26 @@ class Login extends StatelessWidget {
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                       ),
                     ),
+                    const SizedBox(height: 12),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () => ctrl.forgotPassword(),
+                        style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: const Size(0, 0), tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                        child: Row(
+                          spacing: 10.0,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Forgot Password?',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: decoration.colorScheme.primary, fontWeight: FontWeight.w600),
+                            ),
+                            if (ctrl.isForgotPasswordLoading.value)
+                              SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(decoration.colorScheme.primary))),
+                          ],
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 24),
                     SizedBox(
                       height: 52,
