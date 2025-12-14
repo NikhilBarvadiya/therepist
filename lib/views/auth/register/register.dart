@@ -4,11 +4,19 @@ import 'package:get/get.dart';
 import 'package:therepist/utils/decoration.dart';
 import 'package:therepist/views/auth/register/register_ctrl.dart';
 import 'package:therepist/views/auth/register/ui/multi_selection_bottom_sheet.dart';
-
 import '../../../models/service_model.dart' show ServiceModel;
 
-class Register extends StatelessWidget {
+class Register extends StatefulWidget {
   const Register({super.key});
+
+  @override
+  State<Register> createState() => _RegisterState();
+}
+
+class _RegisterState extends State<Register> {
+  final PageController _pageController = PageController();
+  int _currentStep = 0;
+  final List<String> _stepTitles = ['Personal Information', 'Professional Information', 'Services & Equipment', 'Review'];
 
   @override
   Widget build(BuildContext context) {
@@ -18,141 +26,394 @@ class Register extends StatelessWidget {
         return Scaffold(
           backgroundColor: Colors.white,
           body: SafeArea(
-            child: Stack(
+            child: Column(
               children: [
-                SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const SizedBox(height: 32),
-                      Center(
-                        child: Column(
-                          children: [
-                            Container(
-                              width: 72,
-                              height: 72,
-                              decoration: BoxDecoration(color: const Color(0xFF10B981), borderRadius: BorderRadius.circular(18)),
-                              child: const Icon(Icons.local_hospital_rounded, color: Colors.white, size: 36),
-                            ),
-                            const SizedBox(height: 24),
-                            Text(
-                              'Create Account',
-                              style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, color: const Color(0xFF111827)),
-                            ),
-                            const SizedBox(height: 8),
-                            Text('Join us and start managing therapy', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: const Color(0xFF6B7280))),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                      _buildSectionHeader('Personal Information'),
-                      const SizedBox(height: 16),
-                      _buildLabel(context, 'Name'),
-                      const SizedBox(height: 8),
-                      _buildTextField(controller: ctrl.nameCtrl, hint: 'Enter your name', textCapitalization: TextCapitalization.words, icon: Icons.person_2_rounded),
-                      const SizedBox(height: 16),
-                      _buildLabel(context, 'Email'),
-                      const SizedBox(height: 8),
-                      _buildTextField(controller: ctrl.emailCtrl, hint: 'Enter your email', icon: Icons.email_outlined, keyboardType: TextInputType.emailAddress),
-                      const SizedBox(height: 16),
-                      _buildLabel(context, 'Password'),
-                      const SizedBox(height: 8),
-                      Obx(
-                        () => _buildTextField(
-                          controller: ctrl.passwordCtrl,
-                          hint: 'Create a password (min 6 characters)',
-                          icon: Icons.lock_outline,
-                          obscureText: !ctrl.isPasswordVisible.value,
-                          suffixIcon: ctrl.isPasswordVisible.value ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                          onSuffixIconTap: ctrl.togglePasswordVisibility,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildLabel(context, 'Mobile Number'),
-                      const SizedBox(height: 8),
-                      _buildTextField(
-                        controller: ctrl.mobileCtrl,
-                        hint: '+91 Enter your mobile number',
-                        icon: Icons.phone_outlined,
-                        maxLength: 10,
-                        keyboardType: TextInputType.phone,
-                        autofillHints: const [AutofillHints.telephoneNumber],
-                        inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\+91')), FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))],
-                      ),
-                      const SizedBox(height: 16),
-                      _buildLabel(context, 'Address'),
-                      const SizedBox(height: 8),
-                      Obx(
-                        () => _buildTextField(
-                          controller: ctrl.addressCtrl,
-                          hint: 'Enter your address',
-                          icon: Icons.home_outlined,
-                          maxLines: 3,
-                          textCapitalization: TextCapitalization.words,
-                          suffixLoading: ctrl.isGettingLocation.value,
-                          suffixIcon: ctrl.isGettingLocation.value ? Icons.location_searching : Icons.location_on,
-                          onSuffixIconTap: ctrl.isGettingLocation.value ? null : ctrl.retryLocation,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      _buildSectionHeader('Professional Information'),
-                      const SizedBox(height: 16),
-                      _buildLabel(context, 'Clinic Name'),
-                      const SizedBox(height: 8),
-                      _buildTextField(controller: ctrl.clinicCtrl, hint: 'Enter clinic name', icon: Icons.business_outlined),
-                      const SizedBox(height: 16),
-                      _buildLabel(context, 'Specialty'),
-                      const SizedBox(height: 8),
-                      _buildTextField(controller: ctrl.specialtyCtrl, hint: 'Enter specialty', textCapitalization: TextCapitalization.words, icon: Icons.person_outline),
-                      const SizedBox(height: 16),
-                      _buildLabel(context, 'Experience (Years)'),
-                      const SizedBox(height: 8),
-                      _buildExperienceField(ctrl),
-                      const SizedBox(height: 16),
-                      _buildLabel(context, 'Practitioner Type'),
-                      const SizedBox(height: 8),
-                      _buildTypeField(context, ctrl),
-                      const SizedBox(height: 24),
-                      _buildSectionHeader('Services & Equipment'),
-                      const SizedBox(height: 16),
-                      _buildLabel(context, 'Services Offered'),
-                      const SizedBox(height: 8),
-                      _buildEnhancedMultiSelectField(
-                        context: context,
-                        items: ctrl.services,
-                        selectedItems: ctrl.selectedServices,
-                        hint: 'Select services you offer',
-                        icon: Icons.medical_services_outlined,
-                        onTap: () => _showServicesSelection(context, ctrl),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildLabel(context, 'Available Equipment'),
-                      const SizedBox(height: 8),
-                      _buildEnhancedMultiSelectField(
-                        context: context,
-                        items: ctrl.equipment,
-                        selectedItems: ctrl.selectedEquipment,
-                        hint: 'Select available equipment',
-                        icon: Icons.fitness_center_outlined,
-                        onTap: () => _showEquipmentSelection(context, ctrl),
-                      ),
-                      const SizedBox(height: 24),
-                      Obx(() => _buildRegisterButton(ctrl, context)),
-                      const SizedBox(height: 24),
-                      _buildTermsAgreement(context),
-                      const SizedBox(height: 24),
-                      _buildLoginRedirect(context, ctrl),
-                      const SizedBox(height: 16),
-                    ],
+                _buildStepperHeader(),
+                Expanded(
+                  child: PageView(
+                    controller: _pageController,
+                    physics: const NeverScrollableScrollPhysics(),
+                    onPageChanged: (index) {
+                      setState(() {
+                        _currentStep = index;
+                      });
+                    },
+                    children: [_buildPersonalInfoStep(ctrl, context), _buildProfessionalInfoStep(ctrl, context), _buildServicesStep(ctrl, context), _buildReviewStep(ctrl, context)],
                   ),
                 ),
-                _buildBackButton(),
+                _buildNavigationButtons(ctrl),
               ],
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildStepperHeader() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: Colors.grey.shade100)),
+      ),
+      child: Column(
+        children: [
+          Row(
+            spacing: 10.0,
+            children: [
+              IconButton(
+                style: ButtonStyle(
+                  shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                  backgroundColor: WidgetStatePropertyAll(Colors.grey[100]),
+                ),
+                onPressed: () => _currentStep == 0 ? Get.close(1) : _previousStep(),
+                icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: _currentStep == 0 ? Colors.grey : const Color(0xFF111827)),
+                color: const Color(0xFF111827),
+              ),
+              Expanded(
+                child: Column(
+                  children: [
+                    Text(
+                      'Create Account',
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, color: const Color(0xFF111827)),
+                    ),
+                    const SizedBox(height: 4),
+                    Text('Join us and start managing therapy', style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 12, color: const Color(0xFF6B7280))),
+                  ],
+                ),
+              ),
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(color: const Color(0xFF10B981), borderRadius: BorderRadius.circular(12)),
+                child: const Icon(Icons.local_hospital_rounded, color: Colors.white, size: 24),
+              ),
+            ],
+          ).paddingOnly(left: 10, right: 15),
+          Row(
+            spacing: 10.0,
+            children: [
+              Expanded(
+                child: Text(
+                  _stepTitles[_currentStep],
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF111827)),
+                ),
+              ),
+              Text(
+                'Step ${_currentStep + 1} of ${_stepTitles.length}',
+                style: const TextStyle(fontSize: 14, color: Color(0xFF6B7280), fontWeight: FontWeight.w500),
+              ),
+            ],
+          ).paddingOnly(left: 20, right: 20, top: 12, bottom: 12),
+          Row(
+            children: List.generate(_stepTitles.length, (index) {
+              return Expanded(
+                child: Container(
+                  height: 4,
+                  margin: EdgeInsets.only(right: index == _stepTitles.length - 1 ? 0 : 4),
+                  decoration: BoxDecoration(color: index <= _currentStep ? const Color(0xFF10B981) : Colors.grey.shade200, borderRadius: BorderRadius.circular(2)),
+                ),
+              );
+            }),
+          ).paddingOnly(left: 20, right: 20),
+        ],
+      ),
+    );
+  }
+
+  // Personal Information Step - Keeping your original design
+  Widget _buildPersonalInfoStep(RegisterCtrl ctrl, BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Your original personal info section
+          _buildLabel(context, 'Name'),
+          const SizedBox(height: 8),
+          _buildTextField(controller: ctrl.nameCtrl, hint: 'Enter your name', textCapitalization: TextCapitalization.words, icon: Icons.person_2_rounded),
+          const SizedBox(height: 16),
+
+          _buildLabel(context, 'Email'),
+          const SizedBox(height: 8),
+          _buildTextField(controller: ctrl.emailCtrl, hint: 'Enter your email', icon: Icons.email_outlined, keyboardType: TextInputType.emailAddress),
+          const SizedBox(height: 16),
+
+          _buildLabel(context, 'Password'),
+          const SizedBox(height: 8),
+          Obx(
+            () => _buildTextField(
+              controller: ctrl.passwordCtrl,
+              hint: 'Create a password (min 6 characters)',
+              icon: Icons.lock_outline,
+              obscureText: !ctrl.isPasswordVisible.value,
+              suffixIcon: ctrl.isPasswordVisible.value ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+              onSuffixIconTap: ctrl.togglePasswordVisibility,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          _buildLabel(context, 'Mobile Number'),
+          const SizedBox(height: 8),
+          _buildTextField(
+            controller: ctrl.mobileCtrl,
+            hint: '+91 Enter your mobile number',
+            icon: Icons.phone_outlined,
+            maxLength: 10,
+            keyboardType: TextInputType.phone,
+            autofillHints: const [AutofillHints.telephoneNumber],
+            inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\+91')), FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))],
+          ),
+          const SizedBox(height: 16),
+
+          _buildLabel(context, 'Address'),
+          const SizedBox(height: 8),
+          Obx(
+            () => _buildTextField(
+              controller: ctrl.addressCtrl,
+              hint: 'Enter your address',
+              icon: Icons.home_outlined,
+              maxLines: 3,
+              textCapitalization: TextCapitalization.words,
+              suffixLoading: ctrl.isGettingLocation.value,
+              suffixIcon: ctrl.isGettingLocation.value ? Icons.location_searching : Icons.location_on,
+              onSuffixIconTap: ctrl.isGettingLocation.value ? null : ctrl.retryLocation,
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          // Terms section from your original code
+          _buildTermsAgreement(context),
+        ],
+      ),
+    );
+  }
+
+  // Professional Information Step - Keeping your original design
+  Widget _buildProfessionalInfoStep(RegisterCtrl ctrl, BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Your original professional info section
+          _buildLabel(context, 'Clinic Name'),
+          const SizedBox(height: 8),
+          _buildTextField(controller: ctrl.clinicCtrl, hint: 'Enter clinic name', icon: Icons.business_outlined),
+          const SizedBox(height: 16),
+
+          _buildLabel(context, 'Specialty'),
+          const SizedBox(height: 8),
+          _buildTextField(controller: ctrl.specialtyCtrl, hint: 'Enter specialty', textCapitalization: TextCapitalization.words, icon: Icons.person_outline),
+          const SizedBox(height: 16),
+
+          _buildLabel(context, 'Experience (Years)'),
+          const SizedBox(height: 8),
+          _buildExperienceField(ctrl),
+          const SizedBox(height: 16),
+
+          _buildLabel(context, 'Practitioner Type'),
+          const SizedBox(height: 8),
+          _buildTypeField(context, ctrl),
+
+          const SizedBox(height: 24),
+
+          // Help text
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0F9FF),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE0F2FE)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.info_outline_rounded, color: Color(0xFF0EA5E9), size: 20),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text('This information helps us match you with the right patients.', style: TextStyle(fontSize: 13, color: Color(0xFF0C4A6E), height: 1.4)),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Services Step - Keeping your original design
+  Widget _buildServicesStep(RegisterCtrl ctrl, BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Your original services section
+          _buildLabel(context, 'Services Offered'),
+          const SizedBox(height: 8),
+          _buildEnhancedMultiSelectField(
+            context: context,
+            items: ctrl.services,
+            selectedItems: ctrl.selectedServices,
+            hint: 'Select services you offer',
+            icon: Icons.medical_services_outlined,
+            onTap: () => _showServicesSelection(context, ctrl),
+          ),
+          const SizedBox(height: 16),
+
+          _buildLabel(context, 'Available Equipment'),
+          const SizedBox(height: 8),
+          _buildEnhancedMultiSelectField(
+            context: context,
+            items: ctrl.equipment,
+            selectedItems: ctrl.selectedEquipment,
+            hint: 'Select available equipment',
+            icon: Icons.fitness_center_outlined,
+            onTap: () => _showEquipmentSelection(context, ctrl),
+          ),
+
+          const SizedBox(height: 24),
+
+          // Help text
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0F9FF),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE0F2FE)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.info_outline_rounded, color: Color(0xFF0EA5E9), size: 20),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text('You can add more services and equipment later from your dashboard.', style: TextStyle(fontSize: 13, color: Color(0xFF0C4A6E), height: 1.4)),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReviewStep(RegisterCtrl ctrl, BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildReviewSection(
+            title: 'Personal Information',
+            items: [
+              _ReviewItem(label: 'Name', value: ctrl.nameCtrl.text, icon: Icons.person_rounded),
+              _ReviewItem(label: 'Email', value: ctrl.emailCtrl.text, icon: Icons.email_rounded),
+              _ReviewItem(label: 'Phone', value: '+91 ${ctrl.mobileCtrl.text}', icon: Icons.phone_rounded),
+              _ReviewItem(label: 'Address', showBorder: false, value: ctrl.addressCtrl.text, icon: Icons.home_rounded),
+            ],
+          ),
+          const SizedBox(height: 20),
+          _buildReviewSection(
+            title: 'Professional Information',
+            items: [
+              _ReviewItem(label: 'Clinic Name', value: ctrl.clinicCtrl.text, icon: Icons.business_rounded),
+              _ReviewItem(label: 'Specialty', value: ctrl.specialtyCtrl.text, icon: Icons.medical_services_rounded),
+              _ReviewItem(label: 'Experience', value: '${ctrl.experienceCtrl.text} years', icon: Icons.timeline_rounded),
+              _ReviewItem(label: 'Practitioner Type', showBorder: false, value: ctrl.practitionerType.value, icon: Icons.work_rounded),
+            ],
+          ),
+          const SizedBox(height: 20),
+          _buildReviewSection(
+            title: 'Services & Equipment',
+            items: [
+              _ReviewItem(
+                label: 'Services Offered',
+                value: '${ctrl.selectedServices.length} selected',
+                icon: Icons.medical_services_rounded,
+                onEdit: () {
+                  _goToStep(2);
+                  _showServicesSelection(context, ctrl);
+                },
+              ),
+              _ReviewItem(
+                label: 'Available Equipment',
+                value: '${ctrl.selectedEquipment.length} selected',
+                icon: Icons.fitness_center_rounded,
+                showBorder: false,
+                onEdit: () {
+                  _goToStep(2);
+                  _showEquipmentSelection(context, ctrl);
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          _buildTermsAgreement(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavigationButtons(RegisterCtrl ctrl) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: const Color(0xFFE5E7EB), width: 1)),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, -2))],
+      ),
+      child: Row(
+        children: [
+          if (_currentStep > 0)
+            Expanded(
+              child: OutlinedButton(
+                onPressed: _previousStep,
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  side: const BorderSide(color: Color(0xFFE5E7EB)),
+                ),
+                child: const Text(
+                  'Back',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF6B7280)),
+                ),
+              ),
+            ),
+          if (_currentStep > 0) const SizedBox(width: 12),
+          Expanded(
+            child: Obx(
+              () => ElevatedButton(
+                onPressed: ctrl.isLoading.value
+                    ? null
+                    : () {
+                        if (_currentStep < _stepTitles.length - 1) {
+                          _nextStep();
+                        } else {
+                          ctrl.register();
+                        }
+                      },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: ctrl.isLoading.value ? const Color(0xFFE5E7EB) : const Color(0xFF10B981),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  elevation: 0,
+                  disabledBackgroundColor: const Color(0xFFE5E7EB),
+                  shadowColor: Colors.transparent,
+                ),
+                child: ctrl.isLoading.value
+                    ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(decoration.colorScheme.onPrimary)))
+                    : Text(
+                        _currentStep == _stepTitles.length - 1 ? 'Create Account' : 'Continue',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: ctrl.isLoading.value ? const Color(0xFF9CA3AF) : Colors.white),
+                      ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -286,13 +547,6 @@ class Register extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildSectionHeader(String text) {
-    return Text(
-      text,
-      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: const Color(0xFF111827)),
     );
   }
 
@@ -450,70 +704,6 @@ class Register extends StatelessWidget {
     );
   }
 
-  Widget _buildRegisterButton(RegisterCtrl ctrl, BuildContext context) {
-    return SizedBox(
-      height: 52,
-      child: ElevatedButton(
-        onPressed: ctrl.isLoading.value ? null : ctrl.register,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: ctrl.isLoading.value ? const Color(0xFFE5E7EB) : const Color(0xFF10B981),
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          elevation: 0,
-          disabledBackgroundColor: const Color(0xFFE5E7EB),
-          shadowColor: Colors.transparent,
-        ),
-        child: ctrl.isLoading.value
-            ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(decoration.colorScheme.onPrimary)))
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.person_add_alt_1_rounded, size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Create Account',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
-                  ),
-                ],
-              ),
-      ),
-    );
-  }
-
-  Widget _buildLoginRedirect(BuildContext context, RegisterCtrl ctrl) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text('Already have an account? ', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: const Color(0xFF6B7280))),
-        TextButton(
-          onPressed: ctrl.goToLogin,
-          style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: const Size(0, 0), tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-          child: Text(
-            'Sign In',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: const Color(0xFF10B981), fontWeight: FontWeight.w600),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBackButton() {
-    return Container(
-      height: 45,
-      width: 45,
-      margin: const EdgeInsets.all(20),
-      child: IconButton(
-        style: ButtonStyle(
-          shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-          backgroundColor: WidgetStatePropertyAll(Colors.grey[100]),
-        ),
-        onPressed: () => Get.close(1),
-        icon: const Icon(Icons.arrow_back_ios_new, size: 18),
-        color: const Color(0xFF111827),
-      ),
-    );
-  }
-
   void _showServicesSelection(BuildContext context, RegisterCtrl ctrl) {
     showModalBottomSheet(
       context: context,
@@ -521,7 +711,7 @@ class Register extends StatelessWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => ClipRRect(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         child: MultiSelectBottomSheet(title: 'Select Services', selectedItems: ctrl.selectedServices, onSelectionChanged: ctrl.updateSelectedServices, itemType: 'services'),
       ),
     );
@@ -533,12 +723,95 @@ class Register extends StatelessWidget {
       useSafeArea: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) {
-        return ClipRRect(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          child: MultiSelectBottomSheet(title: 'Select Equipment', selectedItems: ctrl.selectedEquipment, onSelectionChanged: ctrl.updateSelectedEquipment, itemType: 'equipment'),
-        );
-      },
+      builder: (context) => ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        child: MultiSelectBottomSheet(title: 'Select Equipment', selectedItems: ctrl.selectedEquipment, onSelectionChanged: ctrl.updateSelectedEquipment, itemType: 'equipment'),
+      ),
     );
   }
+
+  Widget _buildReviewSection({required String title, required List<_ReviewItem> items}) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF9FAFB),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF111827)),
+          ),
+          const SizedBox(height: 12),
+          ...items.map((item) => _buildReviewItem(item)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReviewItem(_ReviewItem item) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        border: Border(bottom: item.showBorder == false ? BorderSide.none : BorderSide(color: Colors.grey.shade200)),
+      ),
+      child: Row(
+        children: [
+          Icon(item.icon, size: 18, color: const Color(0xFF10B981)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(item.label, style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
+                const SizedBox(height: 2),
+                Text(
+                  item.value.isEmpty ? "${item.label.toString().capitalizeFirst} is not provide" : item.value,
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF111827)),
+                ),
+              ],
+            ),
+          ),
+          if (item.onEdit != null)
+            TextButton(
+              onPressed: item.onEdit,
+              style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4), minimumSize: Size.zero),
+              child: const Text(
+                'Edit',
+                style: TextStyle(fontSize: 12, color: Color(0xFF10B981), fontWeight: FontWeight.w600),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _nextStep() {
+    if (_currentStep < _stepTitles.length - 1) {
+      _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+    }
+  }
+
+  void _previousStep() {
+    if (_currentStep > 0) {
+      _pageController.previousPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+    }
+  }
+
+  void _goToStep(int step) {
+    _pageController.animateToPage(step, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+  }
+}
+
+class _ReviewItem {
+  final String label;
+  final String value;
+  final IconData icon;
+  final bool? showBorder;
+  final VoidCallback? onEdit;
+
+  _ReviewItem({required this.label, required this.value, required this.icon, this.showBorder = true, this.onEdit});
 }

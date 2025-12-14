@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:therepist/utils/decoration.dart';
 import 'package:therepist/views/dashboard/profile/profile_ctrl.dart';
 import 'package:therepist/views/dashboard/profile/settings.dart';
+import 'package:therepist/views/dashboard/profile/ui/availability_settings.dart';
 
 class Profile extends StatefulWidget {
   const Profile({super.key});
@@ -31,6 +33,16 @@ class _ProfileState extends State<Profile> {
                   automaticallyImplyLeading: false,
                   title: Text('Profile', style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold)),
                   actions: [
+                    IconButton(
+                      tooltip: 'Manage Slots',
+                      style: ButtonStyle(
+                        shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                        padding: WidgetStatePropertyAll(const EdgeInsets.all(8)),
+                        backgroundColor: WidgetStatePropertyAll(Colors.grey[100]),
+                      ),
+                      icon: Icon(FeatherIcons.clock, color: Theme.of(context).colorScheme.primary, size: 18),
+                      onPressed: () => Get.to(() => AvailabilitySettings()),
+                    ),
                     if (ctrl.isEditMode)
                       Obx(
                         () => ctrl.isSaving.value
@@ -85,11 +97,11 @@ class _ProfileState extends State<Profile> {
                         children: [
                           _buildProfileHeader(ctrl),
                           const SizedBox(height: 24),
+                          _buildStatsSection(ctrl),
+                          const SizedBox(height: 24),
                           _buildPersonalInfoSection(ctrl),
                           const SizedBox(height: 24),
                           _buildClinicInfoSection(ctrl),
-                          const SizedBox(height: 24),
-                          _buildStatsSection(ctrl),
                         ],
                       ),
                     ),
@@ -492,6 +504,8 @@ class _ProfileState extends State<Profile> {
                   const SizedBox(height: 4),
                   Text(
                     ctrl.locationStatus.value,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF6B7280), fontWeight: isSuccess ? FontWeight.w600 : FontWeight.normal),
                   ),
                 ],
@@ -612,7 +626,7 @@ class _ProfileState extends State<Profile> {
               children: [
                 _buildStatItem('Services', ctrl.user.value.services.length.toString(), Icons.medical_services_outlined),
                 _buildStatItem('Equipment', ctrl.user.value.equipment.length.toString(), Icons.fitness_center_outlined),
-                _buildStatItem('Rating', '4.8', Icons.star_outlined),
+                _buildStatItem('Availability', ctrl.user.value.workingDays.length.toString(), FeatherIcons.clock),
               ],
             ),
           ],
@@ -624,16 +638,21 @@ class _ProfileState extends State<Profile> {
   Widget _buildStatItem(String title, String value, IconData icon) {
     return Column(
       children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(color: decoration.colorScheme.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-          child: Icon(icon, color: decoration.colorScheme.primary, size: 24),
+        Row(
+          spacing: 10.0,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(color: decoration.colorScheme.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+              child: Icon(icon, color: decoration.colorScheme.primary, size: 20),
+            ),
+            Text(
+              value,
+              style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
+            ),
+          ],
         ),
         const SizedBox(height: 8),
-        Text(
-          value,
-          style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
-        ),
         Text(title, style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600])),
       ],
     );

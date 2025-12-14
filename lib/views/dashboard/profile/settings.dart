@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:therepist/utils/decoration.dart';
+import 'package:therepist/utils/helper.dart';
 import 'package:therepist/utils/routes/route_name.dart';
 import 'package:therepist/views/dashboard/profile/profile_ctrl.dart';
-import 'package:therepist/views/dashboard/profile/ui/availability_settings.dart';
 
 class Settings extends StatelessWidget {
   const Settings({super.key});
@@ -48,13 +48,6 @@ class Settings extends StatelessWidget {
                         subtitle: 'Set distance for receiving orders',
                         onTap: () => _showNotificationRangeDialog(ctrl),
                       ),
-                      _buildDivider(),
-                      _buildSettingsTile(
-                        icon: Icons.calendar_today_outlined,
-                        title: 'Clinic Availability',
-                        subtitle: 'Set your working hours and slots',
-                        onTap: () => Get.to(() => const AvailabilitySettings()),
-                      ),
                     ],
                   ),
                   const SizedBox(height: 32),
@@ -62,21 +55,11 @@ class Settings extends StatelessWidget {
                   const SizedBox(height: 16),
                   _buildSettingsCard(
                     children: [
-                      _buildSettingsTile(
-                        icon: Icons.privacy_tip_outlined,
-                        title: 'Privacy Policy',
-                        subtitle: 'How we protect your data',
-                        onTap: () => _showPolicyPage('Privacy Policy', _privacyPolicyContent),
-                      ),
+                      _buildSettingsTile(icon: Icons.privacy_tip_outlined, title: 'Privacy Policy', subtitle: 'How we protect your data', onTap: () => ctrl.openPrivacyPolicy()),
                       _buildDivider(),
-                      _buildSettingsTile(
-                        icon: Icons.description_outlined,
-                        title: 'Terms & Conditions',
-                        subtitle: 'App usage guidelines',
-                        onTap: () => _showPolicyPage('Terms & Conditions', _termsContent),
-                      ),
+                      _buildSettingsTile(icon: Icons.description_outlined, title: 'Terms & Conditions', subtitle: 'App usage guidelines', onTap: () => ctrl.openTermsOfService()),
                       _buildDivider(),
-                      _buildSettingsTile(icon: Icons.help_outline, title: 'Help & Support', subtitle: 'Get help using the app', onTap: () => _showPolicyPage('Help & Support', _helpContent)),
+                      _buildSettingsTile(icon: Icons.help_outline, title: 'Help & Support', subtitle: 'Get help using the app', onTap: () => helper.makePhoneCall("+919979066311")),
                     ],
                   ),
                   const SizedBox(height: 32),
@@ -93,16 +76,6 @@ class Settings extends StatelessWidget {
                         color: Colors.red,
                         onTap: () => _showDeleteAccountDialog(ctrl),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 32),
-                  _buildSectionHeader('About App'),
-                  const SizedBox(height: 16),
-                  _buildSettingsCard(
-                    children: [
-                      _buildSettingsTile(icon: Icons.info_outline, title: 'Version', subtitle: '1.0.0 (Build 123)', onTap: () {}),
-                      _buildDivider(),
-                      _buildSettingsTile(icon: Icons.update_outlined, title: 'Check for Updates', subtitle: 'Latest version available', onTap: _checkForUpdates),
                     ],
                   ),
                   const SizedBox(height: 40),
@@ -141,6 +114,7 @@ class Settings extends StatelessWidget {
         decoration: BoxDecoration(color: (color ?? decoration.colorScheme.primary).withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
         child: Icon(icon, color: color ?? decoration.colorScheme.primary, size: 22),
       ),
+      shape: RoundedRectangleBorder(borderRadius: decoration.allBorderRadius(20.0)),
       title: Text(
         title,
         style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w500, color: color ?? Colors.black87),
@@ -408,39 +382,6 @@ class Settings extends StatelessWidget {
     );
   }
 
-  void _showPolicyPage(String title, String content) {
-    Get.to(
-      () => Scaffold(
-        appBar: AppBar(
-          elevation: 0,
-          backgroundColor: decoration.colorScheme.primary,
-          title: Text(title, style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 20)),
-          leading: IconButton(
-            style: ButtonStyle(
-              shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-              padding: WidgetStatePropertyAll(const EdgeInsets.all(8)),
-              backgroundColor: WidgetStatePropertyAll(Colors.grey[100]),
-            ),
-            icon: Icon(Icons.arrow_back, color: decoration.colorScheme.primary, size: 20),
-            onPressed: () => Get.close(1),
-          ),
-        ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2))],
-            ),
-            child: Text(content, style: GoogleFonts.poppins(fontSize: 14, height: 1.6, color: Colors.grey[800])),
-          ),
-        ),
-      ),
-    );
-  }
-
   void _showLogoutDialog(ProfileCtrl ctrl) {
     Get.dialog(
       Dialog(
@@ -570,63 +511,4 @@ class Settings extends StatelessWidget {
       ),
     );
   }
-
-  void _checkForUpdates() {
-    Get.snackbar('Update Check', 'You have the latest version of Therapist Pro', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.green, colorText: Colors.white);
-  }
-
-  final String _privacyPolicyContent = '''
-At Therapist Pro, we are committed to protecting your privacy. This policy outlines how we collect, use, and safeguard your personal information. 
-
-**Data Collection**
-We collect only necessary data, such as name, email, and address, to provide physiotherapy services.
-
-**Data Usage**
-Your information is used to manage appointments, services, and communication.
-
-**Data Protection**
-We use encryption and secure storage to protect your data.
-
-**Sharing**
-We do not share your data with third parties without consent.
-
-For more details, contact us at support@therapistpro.com.
-  ''';
-
-  final String _termsContent = '''
-By using Therapist Pro, you agree to the following terms:
-
-**Usage**
-The app is for physiotherapy-related services only.
-
-**Account**
-You are responsible for maintaining the security of your account.
-
-**Liability**
-We are not liable for any misuse of the app.
-
-**Updates**
-These terms may be updated periodically.
-
-For full terms, contact us at support@therapistpro.com.
-  ''';
-
-  final String _helpContent = '''
-**Getting Started**
-- Set up your profile with accurate information
-- Add your services and set availability
-- Manage appointments through the dashboard
-
-**Common Issues**
-- For login issues, try resetting your password
-- Ensure stable internet connection
-- Update app to latest version
-
-**Contact Support**
-Email: support@therapistpro.com
-Phone: +1-555-0123
-Hours: Mon-Fri, 9AM-6PM
-
-We're here to help you succeed!
-  ''';
 }

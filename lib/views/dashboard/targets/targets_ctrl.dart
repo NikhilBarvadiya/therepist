@@ -40,7 +40,6 @@ class TargetsCtrl extends GetxController {
 
   List<GoalModel> get activeTargets => _goals.where((t) => t.isActive && !t.isCompleted && !t.isExpired).toList();
 
-
   @override
   void onInit() {
     super.onInit();

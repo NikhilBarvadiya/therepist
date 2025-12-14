@@ -137,7 +137,7 @@ class Home extends StatelessWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            "Dr. ${ctrl.userName.value.capitalizeFirst}",
+                            "${ctrl.userName.value.capitalizeFirst}",
                             style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white, letterSpacing: -0.5),
                           ),
                         ],

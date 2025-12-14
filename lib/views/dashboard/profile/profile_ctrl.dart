@@ -10,6 +10,7 @@ import 'package:therepist/utils/storage.dart';
 import 'package:therepist/utils/toaster.dart';
 import 'package:therepist/views/auth/auth_service.dart';
 import 'package:therepist/views/dashboard/home/home_ctrl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../models/user_model.dart';
 
 class ProfileCtrl extends GetxController {
@@ -373,6 +374,26 @@ class ProfileCtrl extends GetxController {
       update();
     } catch (e) {
       toaster.error('Error during logout: ${e.toString()}');
+    }
+  }
+
+  Future<void> openPrivacyPolicy() async {
+    try {
+      final url = "https://sites.google.com/view/healup-privacy-policy/home";
+      final uri = Uri.parse(url);
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      toaster.error('Error: $e');
+    }
+  }
+
+  void openTermsOfService() async {
+    try {
+      final url = "https://itfuturz.in/support/healup-patient-support.html";
+      final uri = Uri.parse(url);
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      toaster.error('Error: $e');
     }
   }
 
