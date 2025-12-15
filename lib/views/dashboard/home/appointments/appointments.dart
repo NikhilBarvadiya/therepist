@@ -256,10 +256,7 @@ class _AppointmentsState extends State<Appointments> {
                 return ctrl.hasMore.value ? _buildLoadingItem() : const SizedBox(height: 20);
               }
               final appointment = ctrl.appointments[index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: AppointmentCard(appointment: appointment),
-              );
+              return AppointmentCard(appointment: appointment);
             }, childCount: ctrl.appointments.length + 1),
           ),
         );
