@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:therepist/models/recharge_model.dart';
 import 'package:therepist/utils/config/session.dart';
 import 'package:therepist/utils/network/api_index.dart';
 import 'package:therepist/utils/network/api_manager.dart';
@@ -217,6 +218,20 @@ class AuthService extends GetxService {
     }
   }
 
+  Future<dynamic> getRecognitions({int page = 1, int limit = 10}) async {
+    try {
+      final response = await ApiManager().call('${APIIndex.recognitions}?page=$page&limit=$limit', {}, ApiType.get);
+      if (!response.success || response.data == null) {
+        toaster.warning(response.message ?? 'Failed to load recognitions');
+        return;
+      }
+      return response.data;
+    } catch (err) {
+      toaster.error('Failed to load recognitions: ${err.toString()}');
+      return;
+    }
+  }
+
   Future<dynamic> getAppointments({required String queryString}) async {
     try {
       final response = await ApiManager().call("${APIIndex.getAppointments}?$queryString&isActive=true", {}, ApiType.get);
@@ -269,6 +284,59 @@ class AuthService extends GetxService {
       return response.data;
     } catch (err) {
       toaster.error(err.toString());
+      return;
+    }
+  }
+
+  Future<List<RechargePlan>> getRechargePlans() async {
+    try {
+      final response = await ApiManager().call(APIIndex.rechargePlans, {}, ApiType.get);
+      if (!response.success || response.data == null) {
+        toaster.warning(response.message ?? 'Failed to load recharge plans');
+        return [];
+      }
+      final List<dynamic> plansData = response.data;
+      return plansData.map((plan) => RechargePlan.fromJson(plan)).where((plan) => plan.status).toList();
+    } catch (err) {
+      toaster.error('Failed to load recharge plans: ${err.toString()}');
+      return [];
+    }
+  }
+
+  Future<DoctorRechargePayment> createRechargePayment(CreateRechargeRequest request) async {
+    try {
+      final response = await ApiManager().call(APIIndex.createRechargePayment, request.toJson(), ApiType.post);
+      if (!response.success || response.data == null) {
+        throw Exception(response.message ?? 'Failed to create recharge payment');
+      }
+      return DoctorRechargePayment.fromJson(response.data);
+    } catch (err) {
+      toaster.error('Failed to create payment: ${err.toString()}');
+      rethrow;
+    }
+  }
+
+  Future<dynamic> getWalletTransactions({int page = 1, int limit = 10, String? status, String? dateFrom, String? dateTo}) async {
+    try {
+      final queryParams = {'page': page.toString(), 'limit': limit.toString()};
+      if (status != null && status != 'all') {
+        queryParams['status'] = status;
+      }
+      if (dateFrom != null) {
+        queryParams['dateFrom'] = dateFrom;
+      }
+      if (dateTo != null) {
+        queryParams['dateTo'] = dateTo;
+      }
+      final queryString = queryParams.entries.map((entry) => '${entry.key}=${entry.value}').join('&');
+      final response = await ApiManager().call('${APIIndex.walletTransactions}?$queryString', {}, ApiType.post);
+      if (!response.success || response.data == null) {
+        toaster.warning(response.message ?? 'Failed to load transactions');
+        return;
+      }
+      return response.data;
+    } catch (err) {
+      toaster.error('Failed to load transactions: ${err.toString()}');
       return;
     }
   }

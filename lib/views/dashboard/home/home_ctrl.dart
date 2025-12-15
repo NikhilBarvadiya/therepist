@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:therepist/models/appointment_model.dart';
+import 'package:therepist/models/recognition_model.dart';
 import 'package:therepist/utils/toaster.dart';
 import 'package:therepist/views/auth/auth_service.dart';
 import 'package:therepist/views/dashboard/home/ui/appointment_countdown_popup.dart';
@@ -8,13 +9,13 @@ class HomeCtrl extends GetxController {
   final AuthService _authService = Get.find<AuthService>();
 
   final RxList<AppointmentModel> appointments = <AppointmentModel>[].obs;
+  final RxList<Recognition> homeRecognitions = <Recognition>[].obs;
   final RxList<AppointmentModel> todayAppointments = <AppointmentModel>[].obs;
   final RxList<AppointmentModel> pendingAppointments = <AppointmentModel>[].obs;
 
-  final RxInt todayAppointmentsCount = 0.obs;
-  final RxInt pendingRequestsCount = 0.obs;
+  final RxInt todayAppointmentsCount = 0.obs, pendingRequestsCount = 0.obs;
 
-  final RxBool isLoading = false.obs, isAcceptLoading = false.obs;
+  final RxBool isLoading = false.obs, isAcceptLoading = false.obs, isLoadingHome = false.obs;
   final RxString userName = ''.obs;
 
   @override
@@ -27,11 +28,27 @@ class HomeCtrl extends GetxController {
   Future<void> loadHomeData() async {
     try {
       isLoading.value = true;
-      await Future.wait([loadTodayAppointments(), loadPendingAppointments()]);
+      await Future.wait([loadHomeRecognitions(), loadTodayAppointments(), loadPendingAppointments()]);
     } catch (e) {
       toaster.error('Error loading home data: ${e.toString()}');
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> loadHomeRecognitions() async {
+    isLoadingHome.value = true;
+    try {
+      final response = await _authService.getRecognitions(page: 1, limit: 5);
+      if (response != null && response['docs'] is List) {
+        final List recognitionsData = response['docs'];
+        final parsedRecognitions = recognitionsData.map((item) => Recognition.fromJson(item)).toList();
+        homeRecognitions.assignAll(parsedRecognitions);
+      }
+    } catch (e) {
+      toaster.error('Failed to load recognitions: $e');
+    } finally {
+      isLoadingHome.value = false;
     }
   }
 

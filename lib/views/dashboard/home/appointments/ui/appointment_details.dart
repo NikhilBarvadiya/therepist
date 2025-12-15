@@ -94,7 +94,7 @@ class _AppointmentDetailsState extends State<AppointmentDetails> {
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.white,
         leading: IconButton(
-          onPressed: () => Get.back(),
+          onPressed: () => Get.close(1),
           icon: const Icon(Icons.arrow_back, color: Colors.black87),
         ),
         title: Text(
