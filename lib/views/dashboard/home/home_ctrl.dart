@@ -38,7 +38,7 @@ class HomeCtrl extends GetxController {
   Future<void> loadPendingAppointments() async {
     try {
       final params = <String, String>{'page': "1", 'limit': '5'};
-      params['status'] = "pending";
+      params['status'] = "Pending";
       final queryString = params.entries.map((e) => '${e.key}=${Uri.encodeComponent(e.value)}').join('&');
       final pendingResponse = await _authService.getAppointments(queryString: queryString);
       if (pendingResponse != null && pendingResponse['docs'] is List) {
@@ -55,7 +55,9 @@ class HomeCtrl extends GetxController {
   Future loadTodayAppointments() async {
     final now = DateTime.now();
     final params = <String, String>{'page': "1", 'limit': '5'};
-    params['dateFrom'] = params['dateTo'] = now.toIso8601String();
+    final today = DateTime(now.year, now.month, now.day);
+    params['dateFrom'] = today.toIso8601String();
+    params['dateTo'] = now.toIso8601String();
     final queryString = params.entries.map((e) => '${e.key}=${Uri.encodeComponent(e.value)}').join('&');
     final response = await _authService.getAppointments(queryString: queryString);
     if (response != null && response['docs'] is List) {

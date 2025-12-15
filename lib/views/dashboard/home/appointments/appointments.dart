@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:therepist/models/appointment_model.dart';
 import 'package:therepist/utils/decoration.dart';
-import 'package:therepist/utils/helper.dart';
 import 'package:therepist/views/dashboard/home/appointments/appointments_ctrl.dart';
+import 'package:therepist/views/dashboard/home/appointments/ui/appointment_card.dart';
 
 class Appointments extends StatefulWidget {
   const Appointments({super.key});
@@ -18,7 +16,6 @@ class Appointments extends StatefulWidget {
 class _AppointmentsState extends State<Appointments> {
   final TextEditingController searchController = TextEditingController();
   final ScrollController scrollController = ScrollController();
-  final RxSet<String> expandedCards = <String>{}.obs;
 
   @override
   void initState() {
@@ -39,14 +36,6 @@ class _AppointmentsState extends State<Appointments> {
       if (ctrl.hasMore.value && !ctrl.isLoading.value) {
         ctrl.loadMoreAppointments();
       }
-    }
-  }
-
-  void _toggleCardExpansion(String appointmentId) {
-    if (expandedCards.contains(appointmentId)) {
-      expandedCards.remove(appointmentId);
-    } else {
-      expandedCards.add(appointmentId);
     }
   }
 
@@ -267,7 +256,10 @@ class _AppointmentsState extends State<Appointments> {
                 return ctrl.hasMore.value ? _buildLoadingItem() : const SizedBox(height: 20);
               }
               final appointment = ctrl.appointments[index];
-              return Padding(padding: const EdgeInsets.only(bottom: 12), child: _buildAppointmentCard(appointment, ctrl));
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: AppointmentCard(appointment: appointment),
+              );
             }, childCount: ctrl.appointments.length + 1),
           ),
         );
@@ -407,359 +399,6 @@ class _AppointmentsState extends State<Appointments> {
     );
   }
 
-  Widget _buildAppointmentCard(AppointmentModel appointment, AppointmentsCtrl ctrl) {
-    final formattedDate = DateFormat('dd MMM yyyy').format(appointment.requestedAt);
-    final formattedTime = DateFormat('hh:mm a').format(appointment.requestedAt);
-    final statusColor = _getStatusColor(appointment.status);
-    final statusIcon = _getStatusIcon(appointment.status);
-    return Obx(() {
-      final isExpanded = expandedCards.contains(appointment.id);
-      return GestureDetector(
-        onTap: () => _toggleCardExpansion(appointment.id),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey.shade300, width: isExpanded ? .8 : .3),
-            boxShadow: [BoxShadow(color: isExpanded ? decoration.colorScheme.primary.withOpacity(0.1) : Colors.black.withOpacity(0.02), blurRadius: isExpanded ? 12 : 8, offset: const Offset(0, 2))],
-          ),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(colors: [decoration.colorScheme.primary, decoration.colorScheme.primary.withOpacity(0.7)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(Icons.person_rounded, color: Colors.white, size: 26),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            appointment.patientName.capitalizeFirst.toString(),
-                            style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w600, color: Colors.black87),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            appointment.serviceName,
-                            style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey[600]),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(color: statusColor.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(statusIcon, size: 14, color: statusColor),
-                              const SizedBox(width: 4),
-                              Text(
-                                appointment.status.toUpperCase(),
-                                style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w700, color: statusColor, letterSpacing: 0.5),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Icon(isExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded, color: Colors.grey[600], size: 24),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              if (!isExpanded)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(12)),
-                    child: Row(
-                      children: [
-                        Icon(Icons.calendar_today_rounded, size: 16, color: Colors.grey[600]),
-                        const SizedBox(width: 6),
-                        Text(
-                          formattedDate,
-                          style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey[700], fontWeight: FontWeight.w500),
-                        ),
-                        const SizedBox(width: 16),
-                        Icon(Icons.access_time_rounded, size: 16, color: Colors.grey[600]),
-                        const SizedBox(width: 6),
-                        Text(
-                          formattedTime,
-                          style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey[700], fontWeight: FontWeight.w500),
-                        ),
-                        const Spacer(),
-                        Text(
-                          'Tap for details',
-                          style: GoogleFonts.poppins(fontSize: 11, color: decoration.colorScheme.primary, fontWeight: FontWeight.w600),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              AnimatedSize(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-                child: isExpanded
-                    ? Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[50],
-                          borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(16), bottomRight: Radius.circular(16)),
-                        ),
-                        child: Column(
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(child: _buildInfoTile(Icons.calendar_today_rounded, 'Date', formattedDate)),
-                                const SizedBox(width: 12),
-                                Expanded(child: _buildInfoTile(Icons.access_time_rounded, 'Time', formattedTime)),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            Row(
-                              children: [
-                                Expanded(child: _buildInfoTile(Icons.location_on_rounded, 'Type', appointment.preferredType)),
-                                const SizedBox(width: 12),
-                                Expanded(child: _buildInfoTile(Icons.currency_rupee_rounded, 'Charge', '₹${appointment.charge}')),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            Row(
-                              spacing: 12.0,
-                              children: [
-                                Expanded(
-                                  child: GestureDetector(
-                                    onTap: () => helper.makePhoneCall(appointment.patientMobile.toString()),
-                                    child: _buildInfoTile(Icons.phone_rounded, 'Mobile', appointment.patientMobile),
-                                  ),
-                                ),
-                                if (appointment.patientAddress.isNotEmpty) ...[Expanded(child: _buildInfoTile(Icons.home_rounded, 'Address', appointment.patientAddress, fullWidth: true))],
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            _buildInfoTile(Icons.email_rounded, 'Email', appointment.patientEmail),
-                            if (appointment.status.toLowerCase() == 'pending' || appointment.status.toLowerCase() == 'accepted') ...[
-                              const SizedBox(height: 16),
-                              Divider(color: Colors.grey[300], height: 1),
-                              const SizedBox(height: 16),
-                              _buildActionSection(appointment, ctrl),
-                            ],
-                          ],
-                        ),
-                      )
-                    : const SizedBox.shrink(),
-              ),
-            ],
-          ),
-        ),
-      );
-    });
-  }
-
-  Widget _buildInfoTile(IconData icon, String label, String value, {bool fullWidth = false}) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(color: decoration.colorScheme.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-            child: Icon(icon, size: 16, color: decoration.colorScheme.primary),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey[600], fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  value,
-                  style: GoogleFonts.poppins(fontSize: 13, color: Colors.black87, fontWeight: FontWeight.w600),
-                  maxLines: fullWidth ? 2 : 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionSection(AppointmentModel appointment, AppointmentsCtrl ctrl) {
-    final status = appointment.status.toLowerCase();
-    return Column(
-      children: [
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: () => helper.makePhoneCall(appointment.patientMobile),
-            icon: const Icon(Icons.phone_rounded, size: 18),
-            label: Text('Call Patient', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600)),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: decoration.colorScheme.primary,
-              side: BorderSide(color: decoration.colorScheme.primary),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              padding: const EdgeInsets.symmetric(vertical: 14),
-            ),
-          ),
-        ),
-        const SizedBox(height: 10),
-        if (status == 'pending')
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () => ctrl.acceptAppointment(appointment.id),
-                  icon: const Icon(Icons.check_rounded, size: 18),
-                  label: Text('Accept', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: decoration.colorScheme.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    elevation: 0,
-                  ),
-                ),
-              ),
-            ],
-          )
-        else if (status == 'accepted')
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => _showCancelDialog(appointment.id, ctrl),
-                  icon: const Icon(Icons.close_rounded, size: 18),
-                  label: Text('Cancel', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600)),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.red,
-                    side: const BorderSide(color: Colors.red),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () => ctrl.completeAppointment(appointment.id),
-                  icon: const Icon(Icons.verified_rounded, size: 18),
-                  label: Text('Complete', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    elevation: 0,
-                  ),
-                ),
-              ),
-            ],
-          ),
-      ],
-    );
-  }
-
-  void _showCancelDialog(String appointmentId, AppointmentsCtrl ctrl) {
-    Get.dialog(
-      Dialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: ClipRRect(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: Colors.red.withOpacity(0.1), shape: BoxShape.circle),
-                  child: const Icon(Icons.warning_rounded, color: Colors.red, size: 40),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  'Cancel Appointment?',
-                  style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.black87),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'This action cannot be undone. The patient will be notified about the cancellation.',
-                  style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600], height: 1.5),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () => Get.close(1),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.grey[700],
-                          side: BorderSide(color: Colors.grey[300]!),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                        ),
-                        child: Text('Go Back', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600)),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          ctrl.cancelAppointment(appointmentId);
-                          Get.close(1);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          elevation: 0,
-                        ),
-                        child: Text('Yes, Cancel', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600)),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-      barrierDismissible: false,
-    );
-  }
-
   Widget _buildLoadingItem() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 20),
@@ -794,35 +433,5 @@ class _AppointmentsState extends State<Appointments> {
         ),
       ),
     );
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'accepted':
-        return Colors.green;
-      case 'pending':
-        return Colors.orange;
-      case 'cancelled':
-        return Colors.red;
-      case 'completed':
-        return Colors.blue;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  IconData _getStatusIcon(String status) {
-    switch (status.toLowerCase()) {
-      case 'accepted':
-        return Icons.check_circle_rounded;
-      case 'pending':
-        return Icons.pending_rounded;
-      case 'cancelled':
-        return Icons.cancel_rounded;
-      case 'completed':
-        return Icons.verified_rounded;
-      default:
-        return Icons.calendar_today_rounded;
-    }
   }
 }

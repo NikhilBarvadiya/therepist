@@ -8,12 +8,14 @@ import 'package:therepist/views/dashboard/home/appointments/ui/date_filter.dart'
 class AppointmentsCtrl extends GetxController {
   final AuthService _authService = Get.find<AuthService>();
   final RxList<AppointmentModel> appointments = <AppointmentModel>[].obs;
-  final RxString selectedStatus = ''.obs, searchQuery = ''.obs, selectedDateRange = 'All Time'.obs;
+  final RxString selectedStatus = 'all'.obs, searchQuery = ''.obs, selectedDateRange = 'All Time'.obs;
   final RxBool isLoading = false.obs, hasMore = true.obs;
   final RxBool isDeleteLoading = false.obs, isAcceptLoading = false.obs, isCompleteLoading = false.obs;
   final dateRanges = ['All Time', 'Today', 'Yesterday', 'Last 7 Days', 'Last 30 Days', 'This Month', 'Last Month', 'Custom Range'];
   var customStartDate = Rx<DateTime?>(null), customEndDate = Rx<DateTime?>(null);
   var currentPage = 1.obs, totalDocs = 0.obs;
+  final RxSet<String> expandedCards = <String>{}.obs;
+
 
   @override
   void onInit() {
@@ -86,7 +88,7 @@ class AppointmentsCtrl extends GetxController {
     isLoading.value = true;
     try {
       final params = <String, String>{'page': currentPage.value.toString(), 'limit': '10'};
-      if (selectedStatus.value.isNotEmpty && selectedStatus.value != 'All') {
+      if (selectedStatus.value.isNotEmpty && selectedStatus.value.toLowerCase() != 'all') {
         params['status'] = selectedStatus.value;
       }
       if (searchQuery.value != '') {
@@ -200,5 +202,9 @@ class AppointmentsCtrl extends GetxController {
   Future<void> refreshAppointments() async {
     currentPage.value = 1;
     await loadAppointments();
+  }
+
+  void clearExpandedCards() {
+    expandedCards.clear();
   }
 }
